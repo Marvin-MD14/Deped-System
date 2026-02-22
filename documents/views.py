@@ -2,24 +2,24 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.cache import never_cache
 
-# I-import ang lahat ng kailangan mula sa iyong models, forms, at choices
+# I-import ang iyong models at forms
 from .models import User, School, Document
 from .forms import EmployeeRegistrationForm
-from .choices import SCHOOL_CHOICES, GENDER_CHOICES
 
 # --- AUTHENTICATION VIEWS ---
 
 def login_view(request):
-    """View para sa User Login."""
     if request.user.is_authenticated:
         return redirect('dashboard_selector')
 
     if request.method == 'POST':
-        u = request.POST.get('email')  # Siguraduhing 'email' ang name sa HTML input mo
+        # Binago: 'username' ang gamitin dahil ito ang nasa name="" ng HTML mo
+        u = request.POST.get('username') 
         p = request.POST.get('password')
         
-        # Tandaan: Sa custom user, email ang madalas na ginagamit na username field
         user = authenticate(request, username=u, password=p)
 
         if user is not None:
@@ -29,6 +29,7 @@ def login_view(request):
             else:
                 messages.error(request, "Account disabled. Please contact the ICT Unit.")
         else:
+            # Gagamit tayo ng 'error' tag para sa SweetAlert icon
             messages.error(request, "Incorrect email or password. Please try again.")
             
     return render(request, 'login.html')
@@ -38,56 +39,54 @@ def logout_view(request):
     """View para sa User Logout."""
     logout(request)
     return redirect('login')
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth import login
-from django.views.decorators.http import require_http_methods
-from django.views.decorators.cache import never_cache
-from .forms import EmployeeRegistrationForm
-from .models import School
 
 
 @never_cache
 @require_http_methods(["GET", "POST"])
 def register_view(request):
-    # Remove old messages to prevent duplicates
-    storage = messages.get_messages(request)
-    for message in storage:
-        pass
-    storage.used = True
+    """View para sa Employee Registration."""
+    if request.user.is_authenticated:
+        return redirect('dashboard_selector')
 
     if request.method == 'POST':
         form = EmployeeRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
             
+            # SUCCESS MESSAGE: Babasahin ito ng SweetAlert sa login.html pagkatapos ng redirect
             messages.success(
                 request, 
                 f'Welcome {user.display_name}! Registration successful. You can now login.'
             )
             return redirect('login')
-        # If form invalid, Django errors will be shown automatically in template
+        else:
+            # ERROR MESSAGE: Babasahin ito ng SweetAlert sa register.html
+            messages.error(request, "Registration failed. Please check the errors in the form.")
     else:
+        # Siguraduhin na malinis ang message storage sa bawat bagong load ng form
+        storage = messages.get_messages(request)
+        storage.used = True
         form = EmployeeRegistrationForm()
 
     context = {
         'form': form,
-        'schools': School.objects.all().order_by('name'),  # FIXED: No is_active filter
+        'schools': School.objects.all().order_by('name'),
     }
-    
     return render(request, 'register.html', context)
+
+
 # --- DASHBOARD LOGIC ---
 
 @login_required
 def dashboard_selector(request):
-    """Traffic Controller: Idinidirekta ang user base sa kanilang role."""
     user = request.user
     if user.is_deped_admin or user.is_deped_secretary:
         return redirect('admin_dashboard')
     elif user.is_school_head:
         return redirect('school_head_dashboard')
     else:
-        return redirect('employee_profile')
+        # Dito papasok ang normal employee pagka-login o pagka-register
+        return redirect('employee_profile') # O kung may hiwalay kang 'employee_dashboard'
 
 # --- ROLE-BASED VIEWS ---
 
@@ -103,6 +102,7 @@ def admin_dashboard(request):
         'title': "DepEd Central Dashboard"
     }
     return render(request, 'deped_dashboard.html', context)
+
 
 @login_required
 def school_head_dashboard(request):
@@ -121,17 +121,20 @@ def school_head_dashboard(request):
     }
     return render(request, 'school_head_dashboard.html', context)
 
+
 @login_required
 def employee_profile(request):
     """Dashboard ng Natural Employee para sa personal updates."""
     user = request.user
     if request.method == 'POST':
-        user.first_name = request.POST.get('first_name')
-        user.last_name = request.POST.get('last_name')
-        user.contact_number = request.POST.get('contact')
-        user.address = request.POST.get('address')
-        user.position = request.POST.get('position')
+        # Ginagamitan ng default para hindi mag-null kung walang binago ang user
+        user.first_name = request.POST.get('first_name', user.first_name)
+        user.last_name = request.POST.get('last_name', user.last_name)
+        user.contact_number = request.POST.get('contact', user.contact_number)
+        user.address = request.POST.get('address', user.address)
+        user.position = request.POST.get('position', user.position)
         user.save()
+        
         messages.success(request, "Your profile has been updated successfully!")
         return redirect('employee_profile')
         
