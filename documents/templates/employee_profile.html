@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | DepEd DMS</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .navbar { background: white; border-bottom: 1px solid #e2e8f0; }
+        .profile-card { background: white; border-radius: 15px; border: none; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .header-bg { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); height: 150px; border-radius: 15px 15px 0 0; }
+        .avatar-wrapper { margin-top: -60px; text-align: center; }
+        .avatar { width: 120px; height: 120px; border: 5px solid white; border-radius: 50%; background: #e2e8f0; }
+        .btn-logout { color: #ef4444; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg py-3">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="{% static 'img/divisionlogo.png' %}" width="40" class="me-2">
+                <span class="fw-bold text-dark">SMART System</span>
+            </a>
+            <div class="ms-auto">
+                <a href="{% url 'logout' %}" class="btn btn-link btn-logout text-decoration-none">
+                    <i class="fas fa-sign-out-alt me-1"></i> Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="profile-card">
+                    <div class="header-bg"></div>
+                    <div class="avatar-wrapper">
+                        <img src="https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}&background=0284c7&color=fff" class="avatar">
+                    </div>
+                    <div class="p-4 text-center">
+                        <h2 class="fw-bold text-dark">{{ user.first_name }} {{ user.last_name }}</h2>
+                        <p class="text-muted">@{{ user.username }} | {{ user.position }}</p>
+                        <hr>
+                        <div class="row text-start mt-4">
+                            <div class="col-sm-6 mb-3">
+                                <label class="small text-uppercase fw-bold text-muted">Email Address</label>
+                                <p class="fw-medium">{{ user.email }}</p>
+                            </div>
+                            <div class="col-sm-6 mb-3">
+                                <label class="small text-uppercase fw-bold text-muted">School/Office</label>
+                                <p class="fw-medium">{{ user.school.name|default:"Division Office" }}</p>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <button class="btn btn-primary px-4 shadow-sm" style="border-radius: 10px;">
+                                <i class="fas fa-edit me-2"></i> Edit Profile
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

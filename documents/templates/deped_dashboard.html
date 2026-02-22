@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block page_title %}DepEd Central Memos{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-xl-12">
+        <div class="card card-default">
+            <div class="card-header">List of Recently Uploaded Memos</div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Memo Title</th>
+                                <th>Uploader</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for memo in memos %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ memo.title }}</td>
+                                <td>{{ memo.uploaded_by.get_full_name }}</td>
+                                <td>{{ memo.date_uploaded|date:"M d, Y" }}</td>
+                                <td><a href="{{ memo.file.url }}" class="btn btn-sm btn-info"><em class="fa fa-eye"></em> View</a></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="text-center">No memos found.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,487 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Employee Registration | DepEd DMS</title>
+    <link rel="icon" type="image/png" href="{% static 'img/divisionlogo.png' %}">
+    
+    <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        :root {
+            --brand-primary: #0284c7; 
+            --brand-gradient: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%);
+            --text-dark: #0c4a6e;
+        }
+
+        body, html { height: 100%; margin: 0; font-family: 'Inter', sans-serif; background: #fff; overflow-x: hidden; }
+        .login-wrapper { display: flex; min-height: 100vh; width: 100%; }
+        
+        .brand-section {
+            flex: 1.4;
+            background: var(--brand-gradient);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-dark);
+            padding: 80px; 
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Upgraded Wave Animation Section */
+        .wave-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .wave {
+            position: absolute;
+            bottom: -150px;
+            left: -50%;
+            width: 200%;
+            height: 500px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 43%;
+            animation: drift 15s infinite linear;
+        }
+
+        .wave.-two {
+            animation: drift 12s infinite linear;
+            opacity: 0.15;
+            background: #fff;
+            bottom: -160px;
+        }
+
+        .wave.-three {
+            animation: drift 19s infinite linear;
+            opacity: 0.1;
+            background: var(--brand-primary);
+            bottom: -170px;
+        }
+
+        @keyframes drift {
+            from { transform: rotate(0deg); }
+            from { transform: rotate(360deg); }
+        }
+
+        .brand-content { position: relative; z-index: 10; text-align: center; }
+        .brand-logo-main { 
+            width: 480px; 
+            margin-bottom: 30px; 
+            filter: drop-shadow(0 15px 25px rgba(0,0,0,0.1));
+            transition: 0.5s ease;
+        }
+        .brand-logo-main:hover { transform: scale(1.03); }
+
+        .brand-title { 
+            font-size: 2.7rem; 
+            font-weight: 800; 
+            line-height: 1.2; 
+            margin-bottom: 20px; 
+            color: #0369a1; 
+            text-shadow: 0 2px 4px rgba(255,255,255,0.5);
+        }
+        .brand-tagline { font-size: 1.1rem; color: #075985; max-width: 500px; margin: 0 auto; line-height: 1.6; }
+
+        .form-section {
+            width: 550px; background: #ffffff; display: flex; 
+            flex-direction: column; justify-content: center; padding: 40px 60px; position: relative;
+        }
+
+        .form-section::before {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: radial-gradient(#e2e8f0 1.2px, transparent 1.2px);
+            background-size: 30px 30px; opacity: 0.3; z-index: 0;
+        }
+
+        .form-container { position: relative; z-index: 10; width: 100%; max-width: 450px; margin: 0 auto; }
+        .form-header { margin-bottom: 25px; text-align: center; }
+        
+        .form-group { margin-bottom: 18px; }
+        .form-group label { 
+            font-weight: 700; font-size: 0.8rem; color: #64748b; 
+            display: block; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        
+        .form-control, .form-select {
+            height: 52px; border-radius: 12px; border: 2px solid #f1f5f9;
+            background: #f8fafc; padding: 0 18px; width: 100%; transition: 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .form-control:focus, .form-select:focus { 
+            border-color: var(--brand-primary); background: #fff; outline: none; 
+            box-shadow: 0 8px 15px rgba(2, 132, 199, 0.08);
+        }
+        .form-header h3 { font-weight: 800; color: #0f172a; font-size: 1.85rem; margin-bottom: 8px; letter-spacing: -0.5px; }
+
+        .btn-register {
+            height: 55px; border-radius: 12px; font-weight: 800; background: var(--brand-primary);
+            border: none; color: white; width: 100%; cursor: pointer; transition: 0.3s;
+            box-shadow: 0 10px 20px -5px rgba(2, 132, 199, 0.4);
+            letter-spacing: 1px; margin-top: 10px; text-transform: uppercase;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+
+        .btn-register:hover:not(:disabled) { transform: translateY(-2px); background: #0369a1; }
+        .btn-register:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
+
+        .spinner { display: none; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .login-link { margin-top: 25px; font-size: 0.95rem; color: #64748b; text-align: center; }
+        .login-link a { color: var(--brand-primary); font-weight: 700; text-decoration: none; }
+        
+        .footer-credit { margin-top: 50px; padding-top: 25px; border-top: 1px solid #f1f5f9; text-align: center; }
+        .footer-text { font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 2px 0; }
+        
+        @media (max-width: 1100px) { .brand-section { display: none; } .form-section { width: 100%; padding: 40px 20px; } }
+    </style>
+</head>
+<body>
+<div class="login-wrapper">
+    <div class="brand-section">
+        <div class="wave-container">
+            <div class="wave"></div>
+            <div class="wave -two"></div>
+            <div class="wave -three"></div>
+        </div>
+
+        <div class="brand-content">
+            <img src="{% static 'img/depedlogo.png' %}" class="brand-logo-main" alt="DepEd Logo">
+            <h1 class="brand-title">Systematic Memorandum Automation & Reporting Services</h1>
+            <p class="brand-tagline">Division of Catanduanes: Streamlining memorandum tracking for faster and smarter administration.</p>
+        </div>
+    </div>
+    
+    <div class="form-section">
+        <div class="form-container">
+            <div class="form-header">
+                <img src="{% static 'img/divisionlogo.png' %}" style="width: 85px;" alt="DepEd Seal">
+                <h3>Create Account</h3>
+            </div>
+
+            <form method="post" id="registrationForm" novalidate>
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <!-- Full Name -->
+                <div class="form-group">
+                    <label for="{{ form.full_name.id_for_label }}">{{ form.full_name.label }}</label>
+                    {{ form.full_name }}
+                    {% if form.full_name.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.full_name.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.email.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Password 1 -->
+                <div class="form-group">
+                    <label for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+                    <div style="position: relative;">
+                        {{ form.password1 }}
+                        <i class="fas fa-eye toggle-password" 
+                           onclick="togglePasswordVisibility('{{ form.password1.id_for_label }}', this)"
+                           style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b; z-index: 10;">
+                        </i>
+                    </div>
+                    {% if form.password1.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.password1.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Password 2 -->
+                <div class="form-group">
+                    <label for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+                    <div style="position: relative;">
+                        {{ form.password2 }}
+                        <i class="fas fa-eye toggle-password" 
+                           onclick="togglePasswordVisibility('{{ form.password2.id_for_label }}', this)"
+                           style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b; z-index: 10;">
+                        </i>
+                    </div>
+                    {% if form.password2.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.password2.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- School and Gender Row -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.school.id_for_label }}">{{ form.school.label }}</label>
+                            {{ form.school }}
+                            {% if form.school.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.school.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.gender.id_for_label }}">{{ form.gender.label }}</label>
+                            {{ form.gender }}
+                            {% if form.gender.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.gender.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-register" id="submitBtn">
+                    <span class="spinner" id="btnSpinner" style="display: none;"></span>
+                    <span id="btnText">Register Account</span>
+                </button>
+            </form>
+
+            <div class="login-link">
+                Already have an account? <a href="{% url 'login' %}" style="color: var(--brand-primary); font-weight: 700;">Sign In</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // Global references for button elements
+        const submitBtn = document.getElementById('submitBtn');
+        const btnSpinner = document.getElementById('btnSpinner');
+        const btnText = document.getElementById('btnText');
+
+        // 1. PASSWORD TOGGLE EYE LOGIC
+        function togglePasswordVisibility(id, el) {
+            const input = document.getElementById(id);
+            if (input.type === "password") {
+                input.type = "text";
+                el.classList.remove('fa-eye');
+                el.classList.add('fa-eye-slash');
+            } else {
+                input.type = "password";
+                el.classList.remove('fa-eye-slash');
+                el.classList.add('fa-eye');
+            }
+        }
+
+        // 2. REAL-TIME PASSWORD MATCHING
+        document.addEventListener('DOMContentLoaded', function() {
+            const password1 = document.getElementById('{{ form.password1.id_for_label }}');
+            const password2 = document.getElementById('{{ form.password2.id_for_label }}');
+
+            function checkPasswordMatch() {
+                if (password1.value && password2.value && password1.value !== password2.value) {
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('btn-secondary');
+                    submitBtn.classList.remove('btn-register');
+                    btnText.textContent = 'Passwords do not match';
+                } else {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('btn-secondary');
+                    submitBtn.classList.add('btn-register');
+                    btnText.textContent = 'Register Account';
+                }
+            }
+
+            password1.addEventListener('input', checkPasswordMatch);
+            password2.addEventListener('input', checkPasswordMatch);
+
+            // 3. FORM SUBMISSION LOADING
+            document.getElementById('registrationForm').addEventListener('submit', function() {
+                submitBtn.disabled = true;
+                btnSpinner.style.display = 'inline-block';
+                btnText.textContent = 'Creating Account...';
+            });
+        });
+
+        // 4. YOUR EXISTING SWEET ALERT - FIXED REFERENCES
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == 'success' %}
+                    Swal.fire({
+                        title: 'SUCCESS',
+                        text: '{{ message }}',
+                        icon: 'success',
+                        iconColor: '#ffffff',
+                        width: '360px',
+                        color: '#ffffff',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        customClass: {
+                            popup: 'swal-professional-blue'
+                        }
+                    }).then(() => {
+                        window.location.href = "{% url 'login' %}";
+                    });
+                {% else %}
+                    Swal.fire({
+                        title: 'REGISTRATION FAILED',
+                        text: '{{ message }}',
+                        icon: 'error',
+                        iconColor: '#ffffff',
+                        width: '360px',
+                        color: '#ffffff',
+                        confirmButtonText: 'UNDERSTOOD',
+                        buttonsStyling: false,
+                        customClass: {
+                            confirmButton: 'btn btn-light px-5 py-2 fw-bold rounded-pill mt-3',
+                            popup: 'swal-professional-blue',
+                            title: 'swal-title-clean',
+                            htmlContainer: 'swal-text-clean'
+                        }
+                    }).then(() => {
+                        // FIXED: Proper button reset
+                        submitBtn.disabled = false;
+                        btnSpinner.style.display = 'none';
+                        btnText.textContent = 'Register Account';
+                        submitBtn.classList.remove('btn-secondary');
+                        submitBtn.classList.add('btn-register');
+                    });
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </script>
+    
+    <style>
+        /* Professional Light Blue Gradient (No Shadow) */
+        .swal-professional-blue {
+            border-radius: 15px !important;
+            background: linear-gradient(135deg, #7dd3fc 0%, #0284c7 100%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            padding: 20px !important;
+            box-shadow: none !important;
+        }
+
+        /* Clean Header Style */
+        .swal-title-clean {
+            font-family: 'Inter', sans-serif !important;
+            font-weight: 700 !important;
+            font-size: 1.4rem !important;
+            color: #ffffff !important;
+            letter-spacing: 0.5px !important;
+            text-shadow: none !important;
+        }
+
+        /* Readable Body Text */
+        .swal-text-clean {
+            font-family: 'Inter', sans-serif !important;
+            font-weight: 400 !important;
+            font-size: 0.95rem !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+            line-height: 1.5 !important;
+            text-shadow: none !important;
+        }
+
+        /* White Button Customization */
+        .btn-light {
+            background-color: #ffffff !important;
+            color: #0284c7 !important;
+            border: none !important;
+            font-size: 0.85rem !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1px !important;
+            transition: opacity 0.2s ease !important;
+        }
+
+        .btn-light:hover {
+            opacity: 0.9 !important;
+        }
+
+        /* Icon border color adjustment */
+        .swal2-icon.swal2-error, .swal2-icon.swal2-success {
+            border-color: #ffffff !important;
+        }
+    </style>
+</div>
+<style>
+/* GREEN Success Message - NO ICON OVERLAP */
+.alert-success, 
+div.alert-success {
+    background: linear-gradient(135deg, #d4edda 0%, #c8e6c9 100%) !important;
+    border: 1px solid #28a745 !important;
+    color: #155724 !important;
+    border-radius: 10px !important;
+    padding: 15px 20px !important;
+    margin: 15px 0 !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    position: relative !important;
+}
+
+/* NO ICON - Clean text only */
+.alert-success i,
+.alert-success .icon,
+.alert-success .fas {
+    display: none !important;
+}
+
+/* Proper spacing - Hindi magsisiksikan */
+.alert-success strong {
+    color: #0f5132 !important;
+    font-weight: 600 !important;
+    display: block;
+    margin-bottom: 4px;
+}
+
+/* Smooth fade in */
+.alert-success {
+    animation: slideIn 0.4s ease-out !important;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Error stays red */
+.alert-danger {
+    background-color: #f8d7da !important;
+    border-color: #dc3545 !important;
+    color: #721c24 !important;
+}
+</style>
+
+</body>
+</html>

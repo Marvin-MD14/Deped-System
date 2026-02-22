@@ -1,0 +1,319 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Employee Login | DepEd DMS</title>
+    <link rel="icon" type="image/png" href="{% static 'img/divisionlogo.png' %}">
+    
+    <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        :root {
+            --brand-primary: #0284c7; 
+            --brand-gradient: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%);
+        }
+
+        /* Gumamit ng fallback fonts kung sakaling hindi load ang Times */
+        * { 
+            font-family: 'Times New Roman', Times, serif !important; 
+            box-sizing: border-box;
+        }
+
+        body, html { 
+            height: 100vh; 
+            margin: 0; 
+            overflow: hidden; 
+            background: #ffffff;
+        }
+
+        .login-wrapper { 
+            display: flex; 
+            height: 100vh; 
+            width: 100%; 
+        }
+        
+        /* --- Left Side --- */
+        .brand-section {
+            flex: 1.2; 
+            background: var(--brand-gradient);
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center;
+            padding: 40px; 
+            position: relative; 
+            overflow: hidden; 
+            z-index: 1;
+        }
+
+        .brand-content {
+            z-index: 11;
+            text-align: center;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        /* Inayos ang curve para maging smooth ang transition */
+        .curve-divider {
+            position: absolute; 
+            top: 0; 
+            right: -1px; 
+            height: 100%; 
+            width: 180px; 
+            z-index: 10; 
+            fill: #ffffff; 
+        }
+
+        .brand-logo-main { 
+            width: 420px; 
+            max-width: 85%; 
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.05));
+        }
+
+        .brand-title { 
+            font-size: 2.2rem; 
+            font-weight: 500; 
+            color: #334155; 
+            margin-top: 25px; 
+            line-height: 1.2;
+        }
+        
+        .highlight-text { color: var(--brand-primary); font-weight: 800; }
+
+        /* --- Right Side --- */
+        .form-section {
+            width: 550px; 
+            background: #ffffff; 
+            display: flex; 
+            flex-direction: column; 
+            position: relative; 
+            height: 100vh;
+        }
+
+        /* Background Bubbles */
+        .bubble {
+            position: absolute; 
+            background: #f0f9ff; 
+            border-radius: 50%; 
+            z-index: 0;
+            animation: floatAndWave 15s infinite ease-in-out;
+        }
+        .b1 { width: 450px; height: 450px; top: -100px; right: -120px; opacity: 0.6; }
+        .b2 { width: 250px; height: 250px; bottom: -40px; left: -50px; opacity: 0.4; }
+
+        @keyframes floatAndWave {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(30px, -20px) scale(1.05); }
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-content-wrapper {
+            flex: 1; 
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center;
+            padding: 20px 40px; 
+            z-index: 5; 
+            position: relative;
+        }
+
+        .form-content-area { width: 100%; max-width: 380px; text-align: center; }
+        .deped-seal-large { width: 100px; margin-bottom: 15px; }
+
+        /* Inayos ang alignment ng labels at inputs */
+        .form-group { text-align: left; margin-bottom: 20px; position: relative; }
+        .form-group label { font-size: 0.95rem; font-weight: 700; color: #1e293b; margin-bottom: 8px; display: block; }
+        
+        .form-control {
+            height: 50px; border-radius: 10px; border: 1.5px solid #cbd5e1;
+            background: #fcfdfe; padding: 0 15px; font-size: 1rem;
+            box-shadow: none !important; transition: all 0.2s ease;
+        }
+        .form-control:focus { border-color: var(--brand-primary); background: #ffffff; }
+
+        /* Auth Options & Checkbox Fix */
+        .auth-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+
+        .form-check { 
+            display: flex; 
+            align-items: center; 
+            gap: 8px;
+            padding-left: 0;
+            margin-bottom: 0;
+        }
+
+        .form-check-input { 
+            width: 18px; height: 18px; cursor: pointer; 
+            margin: 0 !important;
+            border: 1.5px solid #cbd5e1;
+            position: relative;
+        }
+
+        .form-check-label { font-size: 0.95rem; color: #475569; cursor: pointer; user-select: none; }
+
+        .btn-login {
+            height: 54px; border-radius: 10px; font-weight: 800; 
+            background: var(--brand-primary); border: none; color: white; width: 100%; 
+            text-transform: uppercase; letter-spacing: 1.5px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.3);
+        }
+        .btn-login:hover { background: #0274ae; box-shadow: 0 10px 15px -3px rgba(2, 132, 199, 0.4); }
+        .btn-login:active { transform: scale(0.98); }
+
+        .footer-area {
+            padding: 20px;
+            text-align: center;
+            width: 100%;
+            z-index: 5;
+        }
+        .footer-text { 
+            font-size: 0.8rem; 
+            color: #94a3b8; 
+            text-transform: uppercase; 
+            margin: 0; 
+            letter-spacing: 0.5px;
+        }
+
+        @media (max-width: 1100px) {
+            .brand-section { display: none; }
+            .form-section { width: 100%; }
+        }
+        .wave-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .wave {
+            position: absolute;
+            bottom: -150px;
+            left: -50%;
+            width: 200%;
+            height: 500px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 43%;
+            animation: drift 15s infinite linear;
+        }
+
+        .wave.-two {
+            animation: drift 12s infinite linear;
+            opacity: 0.15;
+            background: #fff;
+            bottom: -160px;
+        }
+
+        .wave.-three {
+            animation: drift 19s infinite linear;
+            opacity: 0.1;
+            background: var(--brand-primary);
+            bottom: -170px;
+        }
+
+        @keyframes drift {
+            from { transform: rotate(0deg); }
+            from { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-wrapper">
+        <div class="brand-section">
+             <div class="wave-container">
+            <div class="wave"></div>
+            <div class="wave -two"></div>
+            <div class="wave -three"></div>
+        </div>
+            <svg class="curve-divider" preserveAspectRatio="none" viewBox="0 0 100 100">
+                <path d="M100 0 C 45 0, 45 50, 100 100 L 100 0 Z" />
+            </svg>
+            <div class="brand-content">
+            <img src="{% static 'img/depedlogo.png' %}" class="brand-logo-main" alt="DepEd Logo">
+            <h1 class="brand-title">Systematic Memorandum Automation <br>& Reporting Services</h1>
+            <p class="brand-tagline">Division of Catanduanes: Streamlining memorandum tracking for faster and smarter administration.</p>
+        </div>
+        </div>
+
+        <div class="form-section">
+           
+
+            <div class="login-content-wrapper">
+                <div class="form-content-area">
+                    <img src="{% static 'img/divisionlogo.png' %}" class="deped-seal-large">
+                    <h2 class="fw-bold mb-1" style="color: #1e293b;">Welcome Back</h2>
+                    <p class="text-muted mb-4">Division Systematic Memorandum Automation</p>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input class="form-control" type="email" name="username" placeholder="name@deped.gov.ph" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Password</label>
+                            <div style="position: relative;">
+                                <input class="form-control" type="password" name="password" id="passwordInput" placeholder="••••••••" required style="padding-right: 45px;">
+                                <i class="fas fa-eye" 
+                                   id="toggleEye"
+                                   onclick="togglePasswordVisibility('passwordInput', this)"
+                                   style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; z-index: 10; font-size: 1rem;">
+                                </i>
+                            </div>
+                        </div>
+
+                        <div class="auth-options">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="remember">
+                                <label class="form-check-label" for="remember">Keep me logged in</label>
+                            </div>
+                            <a href="#" class="fw-bold text-decoration-none" style="color: var(--brand-primary); font-size: 0.95rem;">Reset Password?</a>
+                        </div>
+
+                        <button class="btn-login" type="submit">SIGN IN</button>
+                    </form>
+
+                    <div class="mt-4 text-muted" style="font-size: 0.95rem;">
+                        New to the system? <a href="#" class="fw-bold text-decoration-none" style="color: var(--brand-primary);">Register here</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-area">
+                <p class="footer-text">Division of Catanduanes | ICT Unit © 2026</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function togglePasswordVisibility(id, el) {
+            const input = document.getElementById(id);
+            if (input.type === "password") {
+                input.type = "text";
+                el.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = "password";
+                el.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+    </script>
+</body>
+</html>
