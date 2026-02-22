@@ -11,8 +11,8 @@ SECRET_KEY = 'django-insecure-uab#656oq2z@qbxzpw13sfo5aycdon9f#yd+))l3pfu#zkqgj!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*'] # Pinahintulutan ang lahat para sa local development
-
+# settings.py
+ALLOWED_HOSTS = ['192.168.1.2', '127.0.0.1', 'localhost']
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',

@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employee Registration | DepEd DMS</title>
     <link rel="icon" type="image/png" href="{% static 'img/divisionlogo.png' %}">
 
@@ -19,23 +19,21 @@
 
         * {
             font-family: 'Times New Roman', Times, serif;
-            box-sizing: border-box;
+            box-sizing: border-box; /* Mahalaga para hindi lumagpas ang width sa screen */
         }
 
         body,
         html {
             height: 100%;
-            /* Binago: Ginawang 100% para payagan ang natural scrolling */
             margin: 0;
             background: #ffffff;
-            overflow-x: hidden;
-            /* Iwasan ang side scroll */
+            overflow-x: hidden; /* Iwasan ang side scroll */
+            width: 100%;
         }
 
         .login-wrapper {
             display: flex;
             min-height: 100vh;
-            /* Binago: min-height imbes na fixed height */
             width: 100%;
         }
 
@@ -134,13 +132,8 @@
         }
 
         @keyframes drift {
-            from {
-                transform: rotate(0deg);
-            }
-
-            to {
-                transform: rotate(360deg);
-            }
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         /* --- Right Side (Form) --- */
@@ -150,9 +143,7 @@
             display: flex;
             flex-direction: column;
             padding: 60px;
-            /* Dinagdagan ang padding */
             position: relative;
-            /* Binago: Pinayagan ang scrolling sa loob ng section na ito */
             overflow-y: auto;
             max-height: 100vh;
         }
@@ -194,6 +185,7 @@
 
         .form-group {
             margin-bottom: 18px;
+            width: 100%;
         }
 
         .form-group label {
@@ -206,20 +198,27 @@
             letter-spacing: 0.5px;
         }
 
+        /* Responsive Inputs and Selects */
+        select, 
         .form-control,
-        .form-select {
+        .form-select,
+        .select-wrapper select {
+            width: 100% !important;
+            max-width: 100%;
             height: 52px;
             border-radius: 12px;
             border: 2px solid #f1f5f9;
             background: #f8fafc;
             padding: 0 18px;
-            width: 100%;
+            display: block;
             transition: 0.3s;
             font-size: 0.95rem;
+            box-sizing: border-box; /* Siguradong hindi lalampas dahil sa padding */
         }
 
         .form-control:focus,
-        .form-select:focus {
+        .form-select:focus,
+        select:focus {
             border-color: var(--brand-primary);
             background: #fff;
             outline: none;
@@ -267,11 +266,7 @@
             animation: spin 1s ease-in-out infinite;
         }
 
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         .login-link {
             margin-top: 25px;
@@ -287,38 +282,27 @@
             text-decoration: none;
         }
 
-        /* Binago: Hindi na absolute para lumitaw sa pinakababa ng scroll */
-        .footer-area {
-            margin-top: auto;
-            padding-top: 20px;
-            width: 100%;
-            text-align: center;
-            z-index: 10;
-        }
-
-        .footer-text {
-            font-size: 0.75rem;
-            color: #94a3b8;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
+        /* Mobile Fixes */
         @media (max-width: 1100px) {
-            .brand-section {
-                display: none;
-            }
-
+            .brand-section { display: none; }
             .form-section {
                 width: 100%;
                 padding: 40px 20px;
                 max-height: none;
                 overflow-y: visible;
             }
+            .login-wrapper { height: auto; }
+        }
 
-            .login-wrapper {
-                height: auto;
-            }
+        @media (max-width: 768px) {
+            .row { margin-left: 0; margin-right: 0; }
+            .col-12 { padding-left: 0; padding-right: 0; }
+            select, .form-control { font-size: 16px !important; } /* Iwas zoom sa iOS */
+        }
+
+        .select-wrapper {
+            position: relative;
+            width: 100%;
         }
 
         /* SweetAlert Custom Classes */
@@ -326,17 +310,9 @@
             border-radius: 15px !important;
             background: linear-gradient(135deg, #7dd3fc 0%, #0284c7 100%) !important;
             border: 1px solid rgba(255, 255, 255, 0.3) !important;
-            box-shadow: none !important;
         }
-
-        .swal-title-clean {
-            font-weight: 700 !important;
-            color: #ffffff !important;
-        }
-
-        .swal-text-clean {
-            color: rgba(255, 255, 255, 0.9) !important;
-        }
+        .swal-title-clean { font-weight: 700 !important; color: #ffffff !important; }
+        .swal-text-clean { color: rgba(255, 255, 255, 0.9) !important; }
     </style>
 </head>
 
@@ -354,8 +330,7 @@
             <div class="brand-content">
                 <img src="{% static 'img/depedlogo.png' %}" class="brand-logo-main" alt="DepEd Logo">
                 <h1 class="brand-title">Systematic Memorandum Automation <br>& Reporting Services</h1>
-                <p class="brand-tagline">Division of Catanduanes: Streamlining memorandum tracking for faster and
-                    smarter administration.</p>
+                <p class="brand-tagline">Division of Catanduanes: Streamlining memorandum tracking for faster and smarter administration.</p>
             </div>
         </div>
 
@@ -364,9 +339,7 @@
                 <div class="form-header">
                     <img src="{% static 'img/divisionlogo.png' %}" style="width: 85px;" alt="DepEd Seal">
                     <h3>Create Account</h3>
-                    </h2>
                     <p class="text-muted mb-4">Division Systematic Memorandum Automation</p>
-
                 </div>
 
                 <form method="post" id="registrationForm" novalidate>
@@ -423,21 +396,25 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-6 col-12 mb-3">
                             <div class="form-group">
-                                <label for="{{ form.school.id_for_label }}">{{ form.school.label }}</label>
-                                {{ form.school }}
+                                <label class="fw-bold mb-2" for="{{ form.school.id_for_label }}">{{ form.school.label }}</label>
+                                <div class="select-wrapper"> 
+                                    {{ form.school }}
+                                </div>
                                 {% if form.school.errors %}
-                                <div class="invalid-feedback d-block">{{ form.school.errors }}</div>
+                                    <div class="invalid-feedback d-block">{{ form.school.errors }}</div>
                                 {% endif %}
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 col-12 mb-3">
                             <div class="form-group">
-                                <label for="{{ form.gender.id_for_label }}">{{ form.gender.label }}</label>
-                                {{ form.gender }}
+                                <label class="fw-bold mb-2" for="{{ form.gender.id_for_label }}">{{ form.gender.label }}</label>
+                                <div class="select-wrapper">
+                                    {{ form.gender }}
+                                </div>
                                 {% if form.gender.errors %}
-                                <div class="invalid-feedback d-block">{{ form.gender.errors }}</div>
+                                    <div class="invalid-feedback d-block">{{ form.gender.errors }}</div>
                                 {% endif %}
                             </div>
                         </div>
@@ -453,10 +430,6 @@
                     Already have an account? <a href="{% url 'login' %}">Sign In</a>
                 </div>
             </div>
-
-            <!-- <div class="footer-area">
-                <p class="footer-text">Division of Catanduanes | ICT Unit © 2026</p>
-            </div> -->
         </div>
     </div>
 
@@ -467,7 +440,6 @@
         const btnText = document.getElementById('btnText');
         const registrationForm = document.getElementById('registrationForm');
 
-        // Toggle Password Visibility
         function togglePasswordVisibility(id, el) {
             const input = document.getElementById(id);
             if (input.type === "password") {
@@ -480,23 +452,21 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            // Dynamic IDs from Django form
             const password1 = document.getElementById('{{ form.password1.id_for_label }}');
             const password2 = document.getElementById('{{ form.password2.id_for_label }}');
 
-            // Real-time Password Match Validator
             function checkPasswordMatch() {
                 if (password1.value && password2.value) {
                     if (password1.value !== password2.value) {
                         submitBtn.disabled = true;
                         btnText.textContent = 'Passwords do not match';
                         submitBtn.style.backgroundColor = '#94a3b8';
-                        password2.style.borderColor = '#ef4444'; // Red border if no match
+                        password2.style.borderColor = '#ef4444';
                     } else {
                         submitBtn.disabled = false;
                         btnText.textContent = 'Register Account';
                         submitBtn.style.backgroundColor = '#0284c7';
-                        password2.style.borderColor = '#f1f5f9'; // Normal border
+                        password2.style.borderColor = '#f1f5f9';
                     }
                 }
             }
@@ -504,17 +474,14 @@
             password1.addEventListener('input', checkPasswordMatch);
             password2.addEventListener('input', checkPasswordMatch);
 
-            // Form Submit Handler
             registrationForm.addEventListener('submit', function (e) {
-                // Check if form is valid before showing loader
-                if (registrationForm.checkValidity()) {
+                if (registrationForm.checkValidity() && !submitBtn.disabled) {
                     submitBtn.disabled = true;
                     btnSpinner.style.display = 'inline-block';
                     btnText.textContent = 'Creating Account...';
                 }
             });
 
-            // Error Handlers (Para sa server-side validation errors)
             {% if messages %}
             {% for message in messages %}
             {% if message.tags != 'success' %}
@@ -532,7 +499,6 @@
                 },
                 buttonsStyling: false
             }).then(() => {
-                // Reset button state if there was an error
                 submitBtn.disabled = false;
                 btnSpinner.style.display = 'none';
                 btnText.textContent = 'Register Account';
@@ -543,5 +509,4 @@
         });
     </script>
 </body>
-
 </html>
