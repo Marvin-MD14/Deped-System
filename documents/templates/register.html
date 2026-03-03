@@ -507,6 +507,36 @@
             {% endfor %}
             {% endif %}
         });
+        // Add this inside your existing DOMContentLoaded listener
+const emailInput = document.getElementById('{{ form.email.id_for_label }}');
+
+function validateEmailDomain() {
+    const emailValue = emailInput.value.toLowerCase();
+    if (emailValue && !emailValue.endswith('@deped.gov.ph')) {
+        submitBtn.disabled = true;
+        btnText.textContent = 'Use @deped.gov.ph email';
+        submitBtn.style.backgroundColor = '#f87171'; // Red color for error
+        emailInput.style.borderColor = '#ef4444';
+        return false;
+    }
+    return true;
+}
+
+// Update your event listener
+emailInput.addEventListener('input', () => {
+    const isDomainValid = validateEmailDomain();
+    if (isDomainValid) {
+        checkPasswordMatch(); // Only check password if email is valid
+    }
+});
+
+// Helper for JavaScript endswith (for older browsers compatibility)
+if (!String.prototype.endsWith) {
+    String.prototype.endsWith = function(searchString, position) {
+        var lastIndex = this.lastIndexOf(searchString, position);
+        return lastIndex !== -1 && lastIndex === this.length - searchString.length;
+    };
+}
     </script>
 </body>
 </html>
