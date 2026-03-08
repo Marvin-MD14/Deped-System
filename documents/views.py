@@ -5,7 +5,6 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import never_cache
-<<<<<<< HEAD
 from django.urls import reverse
 
 # Imports para sa Email
@@ -16,8 +15,6 @@ from django.conf import settings
 from django.contrib.auth import views as auth_views
 
 # Imports para sa models at forms
-=======
->>>>>>> 2a655c12c6c8b21f5a50521e333da5482ea0df0f
 from .models import User, School, Document
 from .forms import EmployeeRegistrationForm, CustomPasswordResetForm
 
@@ -40,14 +37,8 @@ def login_view(request):
         p = request.POST.get('password')
         remember_me = request.POST.get('remember')
 
-<<<<<<< HEAD
         # Check muna kung ang email ay DepEd o kung Superuser
         check_user = User.objects.filter(email__iexact=u).first()
-=======
-        # --- EMAIL DOMAIN RESTRICTION ---
-        # Allow superusers even without @deped.gov.ph for maintenance
-        check_user = User.objects.filter(email=u).first()
->>>>>>> 2a655c12c6c8b21f5a50521e333da5482ea0df0f
         is_super = check_user.is_superuser if check_user else False
 
         if u and not u.lower().endswith('@deped.gov.ph') and not is_super:
@@ -59,20 +50,10 @@ def login_view(request):
         if user is not None:
             if user.is_active:
                 login(request, user)
-<<<<<<< HEAD
                 if remember_me:
                     request.session.set_expiry(1209600) # 2 weeks
                 else:
                     request.session.set_expiry(0) 
-=======
-                
-                # --- KEEP ME LOGGED IN LOGIC ---
-                if remember_me:
-                    request.session.set_expiry(1209600) # 2 weeks
-                else:
-                    request.session.set_expiry(0) # Browser close
-                
->>>>>>> 2a655c12c6c8b21f5a50521e333da5482ea0df0f
                 return redirect('dashboard_selector')
             else:
                 messages.error(request, "Account disabled or pending approval. Please contact the ICT Unit.")
@@ -88,10 +69,6 @@ def logout_view(request):
 
 @never_cache
 def register_view(request):
-<<<<<<< HEAD
-=======
-    """View for Employee Registration with @deped.gov.ph restriction."""
->>>>>>> 2a655c12c6c8b21f5a50521e333da5482ea0df0f
     if request.user.is_authenticated:
         return redirect('dashboard_selector')
 
@@ -108,7 +85,6 @@ def register_view(request):
             })
 
         if form.is_valid():
-<<<<<<< HEAD
             # Ang validation ng @deped at @gmail ay handle na ng Form
             user = form.save() 
             messages.success(request, f'Welcome {user.full_name}! Your registration is pending for approval. You will receive a notification via your Gmail once approved.')
@@ -119,22 +95,6 @@ def register_view(request):
                 for error in errors:
                     messages.error(request, f"{error}")
     else:
-=======
-            user = form.save()
-            messages.success(
-                request, 
-                f'Welcome {user.display_name}! Registration successful. You can now login.'
-            )
-            return redirect('login')
-        else:
-            if 'email' in form.errors:
-                messages.error(request, form.errors['email'][0])
-            else:
-                messages.error(request, "Registration failed. Please check the errors in the form.")
-    else:
-        storage = messages.get_messages(request)
-        storage.used = True
->>>>>>> 2a655c12c6c8b21f5a50521e333da5482ea0df0f
         form = EmployeeRegistrationForm()
 
     return render(request, 'register.html', {
@@ -166,34 +126,16 @@ class CustomPasswordResetView(auth_views.PasswordResetView):
 @login_required
 def dashboard_selector(request):
     user = request.user
-<<<<<<< HEAD
     if user.is_superuser:
         return redirect('super_admin_dashboard')
     elif getattr(user, 'is_deped_secretary', False):
         return redirect('admin_dashboard')
     elif getattr(user, 'is_school_head', False):
-=======
-    
-    # 1. Super User (System Admin)
-    if user.is_superuser:
-        return redirect('superadmin_dashboard')
-
-    # 2. DepEd Secretary (Promoted Admin Role)
-    elif user.is_deped_secretary:
-        return redirect('admin_dashboard')
-
-    # 3. School Head
-    elif user.is_school_head:
->>>>>>> 2a655c12c6c8b21f5a50521e333da5482ea0df0f
         return redirect('school_head_dashboard')
 
     # 4. Regular Employee (Default)
     else:
         return redirect('employee_profile')
-<<<<<<< HEAD
-=======
-
->>>>>>> 2a655c12c6c8b21f5a50521e333da5482ea0df0f
 
 # --- SUPER ADMIN VIEWS ---
 
@@ -422,36 +364,17 @@ def superadmin_dashboard(request):
 
 @login_required
 def admin_dashboard(request):
-<<<<<<< HEAD
     if not (getattr(request.user, 'is_deped_secretary', False) or request.user.is_superuser):
-=======
-    """Dashboard para sa DepEd Secretary."""
-    if not (request.user.is_deped_secretary or request.user.is_superuser):
->>>>>>> 2a655c12c6c8b21f5a50521e333da5482ea0df0f
         return redirect('dashboard_selector')
     memos = Document.objects.all().order_by('-date_uploaded')
-<<<<<<< HEAD
     return render(request, 'deped_dashboard.html', {'memos': memos, 'title': "DepEd Secretary Dashboard"})
 
 @login_required
 def school_head_dashboard(request):
     if not (getattr(request.user, 'is_school_head', False) or request.user.is_superuser):
-=======
-    context = {
-        'memos': memos,
-        'title': "DepEd Secretary Dashboard"
-    }
-    return render(request, 'deped_dashboard.html', context)
-
-@login_required
-def school_head_dashboard(request):
-    """Dashboard para sa mga School Heads."""
-    if not (request.user.is_school_head or request.user.is_superuser):
->>>>>>> 2a655c12c6c8b21f5a50521e333da5482ea0df0f
         return redirect('dashboard_selector')
     memos = Document.objects.all().order_by('-date_uploaded')
     school_name = request.user.school.name if request.user.school else "No School Assigned"
-<<<<<<< HEAD
     return render(request, 'school_head_dashboard.html', {'memos': memos, 'title': f"Portal: {school_name}"})
 
 @login_required
@@ -460,29 +383,10 @@ def employee_profile(request):
     if request.method == 'POST':
         user.full_name = request.POST.get('full_name', user.full_name)
         user.contact_no = request.POST.get('contact', user.contact_no)
-=======
-    
-    context = {
-        'memos': memos,
-        'title': f"School Portal: {school_name}"
-    }
-    return render(request, 'school_head_dashboard.html', context)
-
-@login_required
-def employee_profile(request):
-    """Landing page para sa mga regular employees."""
-    user = request.user
-    if request.method == 'POST':
-        user.first_name = request.POST.get('first_name', user.first_name)
-        user.last_name = request.POST.get('last_name', user.last_name)
-        user.contact_number = request.POST.get('contact', user.contact_number)
-        user.address = request.POST.get('address', user.address)
->>>>>>> 2a655c12c6c8b21f5a50521e333da5482ea0df0f
         user.position = request.POST.get('position', user.position)
         user.save()
         messages.success(request, "Profile updated successfully!")
         return redirect('employee_profile')
-<<<<<<< HEAD
     return render(request, 'employee_profile.html', {'user': user})
 
 @login_required
@@ -492,10 +396,3 @@ def received_documents(request):
     else:
         memos = Document.objects.filter(school=request.user.school).order_by('-date_uploaded')
     return render(request, 'received_documents.html', {'memos': memos})
-=======
-        
-    return render(request, 'employee_profile.html', {'user': user})
-def all_documents(request):
-    documents = Document.objects.all()
-    return render(request, 'documents/all_documents.html', {'documents': documents})
->>>>>>> 2a655c12c6c8b21f5a50521e333da5482ea0df0f
