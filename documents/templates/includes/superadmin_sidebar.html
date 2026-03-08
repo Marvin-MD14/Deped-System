@@ -1,0 +1,59 @@
+<li class="nav-heading"><span>Main Menu</span></li>
+
+<li class="{% if request.resolver_match.url_name == 'super_admin_dashboard' %}active{% endif %}">
+    <a href="{% url 'super_admin_dashboard' %}">
+        <em class="icon-speedometer"></em>
+        <span>Dashboard</span>
+    </a>
+</li>
+
+<li class="{% if 'user' in request.path or 'access' in request.path %}active{% endif %}">
+    <a href="#user-mgmt" data-toggle="collapse" class="d-flex align-items-center justify-content-between">
+        <div>
+            <em class="icon-people"></em>
+            <span>User Management</span>
+            {% if pending_count > 0 %}
+                <span class="badge badge-danger ml-2 animate__animated animate__pulse animate__infinite" style="border-radius: 10px; font-size: 10px; padding: 2px 6px;">{{ pending_count }}</span>
+            {% endif %}
+        </div>
+        <em class="fas fa-chevron-right style-arrow"></em>
+    </a>
+    <ul class="sidebar-nav sidebar-subnav collapse {% if 'user' in request.path or 'access' in request.path %}show{% endif %}" id="user-mgmt">
+        <li class="sidebar-subnav-header">User Management</li>
+        
+        <li class="{% if request.resolver_match.url_name == 'pending_approvals' %}active{% endif %}">
+            <a href="{% url 'pending_approvals' %}" class="d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-user-clock mr-2 text-warning"></i><span>Pending Approvals</span></span>
+                {% if pending_count > 0 %}
+                    <span class="badge badge-pill badge-danger">{{ pending_count }}</span>
+                {% endif %}
+            </a>
+        </li>
+
+        <li class="{% if request.resolver_match.url_name == 'add_user' %}active{% endif %}">
+            <a href="{% url 'add_user' %}"><i class="fas fa-user-plus mr-2"></i><span>Add User</span></a>
+        </li>
+        
+        <li class="{% if request.resolver_match.url_name == 'user_management' %}active{% endif %}">
+            <a href="{% url 'user_management' %}"><i class="fas fa-list mr-2"></i><span>User List</span></a>
+        </li>
+        
+        <li class="{% if request.resolver_match.url_name == 'access_requests' %}active{% endif %}">
+            <a href="{% url 'access_requests' %}"><i class="fas fa-key mr-2"></i><span>Access Requests</span></a>
+        </li>
+    </ul>
+</li>
+
+<li>
+    <a href="#doc-mgmt" data-toggle="collapse" class="d-flex align-items-center justify-content-between">
+        <div>
+            <em class="icon-folder"></em>
+            <span>Documents</span>
+        </div>
+        <em class="fas fa-chevron-right style-arrow"></em>
+    </a>
+    <ul class="sidebar-nav sidebar-subnav collapse" id="doc-mgmt">
+        <li class="sidebar-subnav-header">Document Records</li>
+        <li><a href="{% url 'received_documents' %}"><i class="fas fa-file-alt mr-2"></i><span>Received Memos</span></a></li>
+    </ul>
+</li>

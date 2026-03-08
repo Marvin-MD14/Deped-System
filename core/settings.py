@@ -2,18 +2,17 @@ import os
 from pathlib import Path
 from django.contrib.messages import constants as messages
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# 1. PATHS & SECURITY
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
+# TANDAAN: Sa production, ilipat ang SECRET_KEY sa environment variables
 SECRET_KEY = 'django-insecure-uab#656oq2z@qbxzpw13sfo5aycdon9f#yd+))l3pfu#zkqgj!'
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# settings.py
 ALLOWED_HOSTS = ['192.168.1.2', '127.0.0.1', 'localhost']
-# Application definition
+
+# 2. APPLICATION DEFINITION
 INSTALLED_APPS = [ 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -22,7 +21,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    # Your App
+    # Inyong App
     'documents', 
 ]
 
@@ -41,7 +40,10 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'documents', 'templates')], 
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates'),
+            os.path.join(BASE_DIR, 'documents', 'templates'),
+        ], 
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -49,6 +51,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                # DITO NAKALAGAY ANG IYONG CONTEXT PROCESSOR PARA SA PENDING COUNTS
+                'documents.context_processors.global_user_counts', 
             ],
         },
     },
@@ -56,7 +60,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# Database (MySQL)
+# 3. DATABASE (MySQL)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -71,10 +75,9 @@ DATABASES = {
     }
 }
 
-# Custom User Model
+# 4. CUSTOM USER & AUTHENTICATION
 AUTH_USER_MODEL = 'documents.User'
 
-# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
@@ -82,30 +85,48 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
 
-# Internationalization
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'dashboard_selector'
+LOGOUT_REDIRECT_URL = 'login'
+
+# 5. INTERNATIONALIZATION
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Manila'
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'documents', 'static')]
-# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Para sa production
+# 6. STATIC & MEDIA FILES
+STATIC_URL = '/static/'
 
-# Media files (Uploaded Memos/Documents)
+STATICFILES_DIRS = []
+main_static = os.path.join(BASE_DIR, 'static')
+app_static = os.path.join(BASE_DIR, 'documents', 'static')
+
+if os.path.exists(main_static):
+    STATICFILES_DIRS.append(main_static)
+if os.path.exists(app_static):
+    STATICFILES_DIRS.append(app_static)
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Default primary key field type
+# 7. EMAIL CONFIGURATION (Gmail SMTP)
+# Mahalaga ito para sa Forgot Password/Reset Password logic
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_HOST_USER = 'marvinmedrana6@gmail.com'
+EMAIL_HOST_PASSWORD = 'ykqxzuhkdijgzedi' 
+DEFAULT_FROM_EMAIL = 'DepEd DMS <marvinmedrana6@gmail.com>'
+EMAIL_TIMEOUT = 30 
+
+# 8. MISC
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Authentication URLs
-LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'dashboard_selector'
-LOGOUT_REDIRECT_URL = 'login'
-
-# Bootstrap integration for Django Messages
 MESSAGE_TAGS = {
     messages.DEBUG: 'secondary',
     messages.INFO: 'info',
@@ -113,14 +134,3 @@ MESSAGE_TAGS = {
     messages.WARNING: 'warning',
     messages.ERROR: 'danger',
 }
-# settings.py
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'marvinmedrana6@gmail.com'
-EMAIL_HOST_PASSWORD = 'ykqxzuhkdijgzedi' 
-
-# 3. Napakahalaga: Idagdag ito para malaman ng Gmail kung sino ang sender
-DEFAULT_FROM_EMAIL = 'DepEd DMS <marvinmedrana6@gmail.com>'
-SERVER_EMAIL = 'marvinmedrana6@gmail.com'

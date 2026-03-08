@@ -19,7 +19,7 @@
 
         * {
             font-family: 'Times New Roman', Times, serif;
-            box-sizing: border-box; /* Mahalaga para hindi lumagpas ang width sa screen */
+            box-sizing: border-box;
         }
 
         body,
@@ -27,7 +27,7 @@
             height: 100%;
             margin: 0;
             background: #ffffff;
-            overflow-x: hidden; /* Iwasan ang side scroll */
+            overflow-x: hidden;
             width: 100%;
         }
 
@@ -72,6 +72,7 @@
             width: 420px;
             max-width: 85%;
             filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.05));
+            transition: 0.3s;
         }
 
         .brand-logo-main:hover {
@@ -148,20 +149,6 @@
             max-height: 100vh;
         }
 
-        .form-section::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: radial-gradient(#e2e8f0 1.2px, transparent 1.2px);
-            background-size: 30px 30px;
-            opacity: 0.3;
-            z-index: 0;
-            pointer-events: none;
-        }
-
         .form-container {
             position: relative;
             z-index: 10;
@@ -198,27 +185,20 @@
             letter-spacing: 0.5px;
         }
 
-        /* Responsive Inputs and Selects */
-        select, 
         .form-control,
-        .form-select,
-        .select-wrapper select {
+        .form-select {
             width: 100% !important;
-            max-width: 100%;
             height: 52px;
             border-radius: 12px;
             border: 2px solid #f1f5f9;
             background: #f8fafc;
             padding: 0 18px;
-            display: block;
             transition: 0.3s;
             font-size: 0.95rem;
-            box-sizing: border-box; /* Siguradong hindi lalampas dahil sa padding */
         }
 
         .form-control:focus,
-        .form-select:focus,
-        select:focus {
+        .form-select:focus {
             border-color: var(--brand-primary);
             background: #fff;
             outline: none;
@@ -253,7 +233,7 @@
         .btn-register:disabled {
             background: #94a3b8;
             cursor: not-allowed;
-            transform: none;
+            box-shadow: none;
         }
 
         .spinner {
@@ -282,37 +262,13 @@
             text-decoration: none;
         }
 
-        /* Mobile Fixes */
         @media (max-width: 1100px) {
             .brand-section { display: none; }
             .form-section {
                 width: 100%;
                 padding: 40px 20px;
-                max-height: none;
-                overflow-y: visible;
             }
-            .login-wrapper { height: auto; }
         }
-
-        @media (max-width: 768px) {
-            .row { margin-left: 0; margin-right: 0; }
-            .col-12 { padding-left: 0; padding-right: 0; }
-            select, .form-control { font-size: 16px !important; } /* Iwas zoom sa iOS */
-        }
-
-        .select-wrapper {
-            position: relative;
-            width: 100%;
-        }
-
-        /* SweetAlert Custom Classes */
-        .swal-professional-blue {
-            border-radius: 15px !important;
-            background: linear-gradient(135deg, #7dd3fc 0%, #0284c7 100%) !important;
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
-        }
-        .swal-title-clean { font-weight: 700 !important; color: #ffffff !important; }
-        .swal-text-clean { color: rgba(255, 255, 255, 0.9) !important; }
     </style>
 </head>
 
@@ -346,76 +302,59 @@
                     {% csrf_token %}
 
                     {% if form.non_field_errors %}
-                    <div class="alert alert-danger">
+                    <div class="alert alert-danger" style="border-radius: 10px; font-size: 0.9rem;">
                         {{ form.non_field_errors }}
                     </div>
                     {% endif %}
 
                     <div class="form-group">
-                        <label for="{{ form.full_name.id_for_label }}">{{ form.full_name.label }}</label>
+                        <label for="{{ form.full_name.id_for_label }}">Full Name</label>
                         {{ form.full_name }}
-                        {% if form.full_name.errors %}
-                        <div class="invalid-feedback d-block">{{ form.full_name.errors }}</div>
-                        {% endif %}
                     </div>
 
                     <div class="form-group">
-                        <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                        <label for="{{ form.email.id_for_label }}">DepEd Email (Login Username)</label>
                         {{ form.email }}
-                        {% if form.email.errors %}
-                        <div class="invalid-feedback d-block">{{ form.email.errors }}</div>
-                        {% endif %}
+                        <small class="text-muted" style="font-size: 0.75rem;">This will be your official login ID.</small>
                     </div>
 
                     <div class="form-group">
-                        <label for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+                        <label for="{{ form.personal_email.id_for_label }}">Gmail Address (Recovery Email)</label>
+                        {{ form.personal_email }}
+                        <small class="text-primary fw-bold" style="font-size: 0.75rem;">Password resets will be sent here.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.password1.id_for_label }}">Password</label>
                         <div style="position: relative;">
                             {{ form.password1 }}
-                            <i class="fas fa-eye toggle-password"
+                            <i class="fas fa-eye" id="toggleP1" 
                                 onclick="togglePasswordVisibility('{{ form.password1.id_for_label }}', this)"
-                                style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b; z-index: 10;">
-                            </i>
+                                style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b; z-index: 10;"></i>
                         </div>
-                        {% if form.password1.errors %}
-                        <div class="invalid-feedback d-block">{{ form.password1.errors }}</div>
-                        {% endif %}
                     </div>
 
                     <div class="form-group">
-                        <label for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+                        <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
                         <div style="position: relative;">
                             {{ form.password2 }}
-                            <i class="fas fa-eye toggle-password"
+                            <i class="fas fa-eye" id="toggleP2"
                                 onclick="togglePasswordVisibility('{{ form.password2.id_for_label }}', this)"
-                                style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b; z-index: 10;">
-                            </i>
+                                style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b; z-index: 10;"></i>
                         </div>
-                        {% if form.password2.errors %}
-                        <div class="invalid-feedback d-block">{{ form.password2.errors }}</div>
-                        {% endif %}
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 col-12 mb-3">
                             <div class="form-group">
-                                <label class="fw-bold mb-2" for="{{ form.school.id_for_label }}">{{ form.school.label }}</label>
-                                <div class="select-wrapper"> 
-                                    {{ form.school }}
-                                </div>
-                                {% if form.school.errors %}
-                                    <div class="invalid-feedback d-block">{{ form.school.errors }}</div>
-                                {% endif %}
+                                <label class="fw-bold mb-2">School/Office</label>
+                                {{ form.school }}
                             </div>
                         </div>
                         <div class="col-md-6 col-12 mb-3">
                             <div class="form-group">
-                                <label class="fw-bold mb-2" for="{{ form.gender.id_for_label }}">{{ form.gender.label }}</label>
-                                <div class="select-wrapper">
-                                    {{ form.gender }}
-                                </div>
-                                {% if form.gender.errors %}
-                                    <div class="invalid-feedback d-block">{{ form.gender.errors }}</div>
-                                {% endif %}
+                                <label class="fw-bold mb-2">Gender</label>
+                                {{ form.gender }}
                             </div>
                         </div>
                     </div>
@@ -439,6 +378,11 @@
         const btnSpinner = document.getElementById('btnSpinner');
         const btnText = document.getElementById('btnText');
         const registrationForm = document.getElementById('registrationForm');
+        
+        const depedEmailInput = document.getElementById('{{ form.email.id_for_label }}');
+        const personalEmailInput = document.getElementById('{{ form.personal_email.id_for_label }}');
+        const password1Input = document.getElementById('{{ form.password1.id_for_label }}');
+        const password2Input = document.getElementById('{{ form.password2.id_for_label }}');
 
         function togglePasswordVisibility(id, el) {
             const input = document.getElementById(id);
@@ -451,92 +395,80 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function () {
-            const password1 = document.getElementById('{{ form.password1.id_for_label }}');
-            const password2 = document.getElementById('{{ form.password2.id_for_label }}');
+        function validateForm() {
+            let isValid = true;
+            let errorMessage = "Register Account";
 
-            function checkPasswordMatch() {
-                if (password1.value && password2.value) {
-                    if (password1.value !== password2.value) {
-                        submitBtn.disabled = true;
-                        btnText.textContent = 'Passwords do not match';
-                        submitBtn.style.backgroundColor = '#94a3b8';
-                        password2.style.borderColor = '#ef4444';
-                    } else {
-                        submitBtn.disabled = false;
-                        btnText.textContent = 'Register Account';
-                        submitBtn.style.backgroundColor = '#0284c7';
-                        password2.style.borderColor = '#f1f5f9';
-                    }
+            // 1. Validasyon para sa DepEd Email (Dapat nagtatapos sa @deped.gov.ph)
+            const depedValue = depedEmailInput.value.trim().toLowerCase();
+            if (depedValue !== "" && !depedValue.endsWith('@deped.gov.ph')) {
+                errorMessage = "Invalid DepEd Email";
+                depedEmailInput.style.borderColor = '#ef4444';
+                isValid = false;
+            } else {
+                depedEmailInput.style.borderColor = '#f1f5f9';
+            }
+
+            // 2. Validasyon para sa Personal Email (Dapat Gmail para sa Reset)
+            const personalValue = personalEmailInput.value.trim().toLowerCase();
+            if (personalValue !== "" && !personalValue.endsWith('@gmail.com')) {
+                errorMessage = "Gmail required for Recovery";
+                personalEmailInput.style.borderColor = '#ef4444';
+                isValid = false;
+            } else {
+                personalEmailInput.style.borderColor = '#f1f5f9';
+            }
+
+            // 3. Password Match Check
+            if (password1Input.value !== "" && password2Input.value !== "") {
+                if (password1Input.value !== password2Input.value) {
+                    errorMessage = "Passwords mismatch";
+                    password2Input.style.borderColor = '#ef4444';
+                    isValid = false;
+                } else {
+                    password2Input.style.borderColor = '#f1f5f9';
                 }
             }
 
-            password1.addEventListener('input', checkPasswordMatch);
-            password2.addEventListener('input', checkPasswordMatch);
-
-            registrationForm.addEventListener('submit', function (e) {
-                if (registrationForm.checkValidity() && !submitBtn.disabled) {
-                    submitBtn.disabled = true;
-                    btnSpinner.style.display = 'inline-block';
-                    btnText.textContent = 'Creating Account...';
-                }
-            });
-
-            {% if messages %}
-            {% for message in messages %}
-            {% if message.tags != 'success' %}
-            Swal.fire({
-                title: 'REGISTRATION FAILED',
-                text: '{{ message }}',
-                icon: 'error',
-                iconColor: '#ffffff',
-                width: '360px',
-                color: '#ffffff',
-                confirmButtonText: 'Close',
-                customClass: {
-                    confirmButton: 'btn btn-light px-5 py-2 fw-bold rounded-pill mt-3',
-                    popup: 'swal-professional-blue'
-                },
-                buttonsStyling: false
-            }).then(() => {
+            // Update UI ng Button
+            if (!isValid) {
+                submitBtn.disabled = true;
+                btnText.textContent = errorMessage;
+            } else {
                 submitBtn.disabled = false;
-                btnSpinner.style.display = 'none';
-                btnText.textContent = 'Register Account';
-            });
-            {% endif %}
-            {% endfor %}
-            {% endif %}
+                btnText.textContent = "Register Account";
+            }
+        }
+
+        // Real-time validation listeners
+        [depedEmailInput, personalEmailInput, password1Input, password2Input].forEach(input => {
+            input.addEventListener('input', validateForm);
         });
-        // Add this inside your existing DOMContentLoaded listener
-const emailInput = document.getElementById('{{ form.email.id_for_label }}');
 
-function validateEmailDomain() {
-    const emailValue = emailInput.value.toLowerCase();
-    if (emailValue && !emailValue.endswith('@deped.gov.ph')) {
-        submitBtn.disabled = true;
-        btnText.textContent = 'Use @deped.gov.ph email';
-        submitBtn.style.backgroundColor = '#f87171'; // Red color for error
-        emailInput.style.borderColor = '#ef4444';
-        return false;
-    }
-    return true;
-}
+        registrationForm.addEventListener('submit', function (e) {
+            if (registrationForm.checkValidity() && !submitBtn.disabled) {
+                submitBtn.disabled = true;
+                btnSpinner.style.display = 'inline-block';
+                btnText.textContent = 'Verifying...';
+            }
+        });
 
-// Update your event listener
-emailInput.addEventListener('input', () => {
-    const isDomainValid = validateEmailDomain();
-    if (isDomainValid) {
-        checkPasswordMatch(); // Only check password if email is valid
-    }
-});
-
-// Helper for JavaScript endswith (for older browsers compatibility)
-if (!String.prototype.endsWith) {
-    String.prototype.endsWith = function(searchString, position) {
-        var lastIndex = this.lastIndexOf(searchString, position);
-        return lastIndex !== -1 && lastIndex === this.length - searchString.length;
-    };
-}
+        // SweetAlert para sa Django Messages
+        {% if messages %}
+        {% for message in messages %}
+        Swal.fire({
+            title: '{% if message.tags == "success" %}SUCCESS{% else %}FAILED{% endif %}',
+            text: '{{ message }}',
+            icon: '{% if message.tags == "success" %}success{% else %}error{% endif %}',
+            background: '#ffffff',
+            confirmButtonColor: '#0284c7',
+            confirmButtonText: 'OK',
+            customClass: {
+                popup: 'rounded-4 shadow'
+            }
+        });
+        {% endfor %}
+        {% endif %}
     </script>
 </body>
 </html>

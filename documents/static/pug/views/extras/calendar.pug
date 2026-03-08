@@ -1,0 +1,79 @@
+extends ../../_layout
+
+block active
+    - sidebar_active = 'calendar.html'
+
+block content
+    .content-heading
+        div
+            | Full Calendar
+            small Drag and Drop events and tasks
+
+    // START row
+    .calendar-app
+        .row
+            .col-xl-3.col-lg-4
+                .row
+                    .col-lg-12.col-md-6.col-12
+                        // START card
+                        .card.card-default
+                            .card-header
+                                h4.card-title Draggable Events
+                            // Default external events list
+                            .card-body
+                                .external-events#external-events-list
+                                    .fce-event.bg-green Lunch
+                                    .fce-event.bg-danger Go home
+                                    .fce-event.bg-info Do homework
+                                    .fce-event.bg-warning Work on UI design
+                                    .fce-event.bg-inverse Sleep tight
+                                .custom-control.custom-checkbox.mt-3
+                                    input#drop-remove.custom-control-input(type='checkbox')
+                                    label.custom-control-label(for='drop-remove') Remove after Drop
+                        // END card
+                    .col-lg-12.col-md-6.col-12
+                        // START card
+                        .card.card-default
+                            .card-header
+                                h3.card-title Create Event
+                            .card-body
+                                .input-group.mb-2
+                                    input.form-control#external-event-name(type='text', placeholder="Event name...")
+                                    .input-group-btn
+                                        button.btn.btn-secondary#external-event-add-btn(type='button') Add
+                                p.text-muted: small Choose a Color
+                                ul.list-inline#external-event-color-selector
+                                    li.list-inline-item.p-0: .circle.bg-danger.circle-xl.selected
+                                    li.list-inline-item.p-0: .circle.bg-primary.circle-xl
+                                    li.list-inline-item.p-0: .circle.bg-info.circle-xl
+                                    li.list-inline-item.p-0: .circle.bg-success.circle-xl
+                                    li.list-inline-item.p-0: .circle.bg-warning.circle-xl
+                                    li.list-inline-item.p-0: .circle.bg-green.circle-xl
+                                    li.list-inline-item.p-0: .circle.bg-pink.circle-xl
+                                    li.list-inline-item.p-0: .circle.bg-inverse.circle-xl
+                                    li.list-inline-item.p-0: .circle.bg-purple.circle-xl
+                        // END card
+            .col-xl-9.col-lg-8
+                // START card
+                .card.card-default
+                    .card-body
+                        // START calendar
+                        #calendar
+                        // END calendar
+                // END card
+        // END row
+
+block vendor_css
+    link(rel='stylesheet', href='vendor/@fullcalendar/core/main.css')
+    link(rel='stylesheet', href='vendor/@fullcalendar/daygrid/main.css')
+    link(rel='stylesheet', href='vendor/@fullcalendar/timegrid/main.css')
+    link(rel='stylesheet', href='vendor/@fullcalendar/list/main.css')
+    link(rel='stylesheet', href='vendor/@fullcalendar/bootstrap/main.css')
+block vendor_js
+    script(src='vendor/@fullcalendar/core/main.js')
+    script(src='vendor/@fullcalendar/daygrid/main.js')
+    script(src='vendor/@fullcalendar/timegrid/main.js')
+    script(src='vendor/@fullcalendar/list/main.js')
+    script(src='vendor/@fullcalendar/interaction/main.js')
+    script(src='vendor/@fullcalendar/bootstrap/main.js')
+

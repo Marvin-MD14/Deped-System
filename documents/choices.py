@@ -4,6 +4,7 @@ SCHOOL_CHOICES = [
     ('SDO', 'Division Office'),
     ('Agban NHS', 'Agban NHS'),
     ('Antipolo NHS', 'Antipolo NHS'),
+    ('Batag ES', 'Batag Elementary School'),
     ('Bagamanoc RDHS', 'Bagamanoc RDHS'),
     ('Baldoc IS', 'Baldoc Integrated School'),
     ('Baras RDHS', 'Baras RDHS'),

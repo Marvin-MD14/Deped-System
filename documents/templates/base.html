@@ -4,57 +4,379 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>DepEd Memo System | Angle Style</title>
+    <title>{% block title %}Super Admin | DepEd ERDM{% endblock %}</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
+    <style>
+        /* GLOBAL SETTINGS */
+        body, p, span, h1, h2, h3, h4, h5, h6, a, div, li, small { 
+            font-family: "Times New Roman", Times, serif; 
+        }
+        
+        body { background-color: #ffffff; overflow-x: hidden; margin: 0; padding: 0; }
+
+        /* FIX: Font Awesome Icons */
+        .fas, .far, .fab, .fa {
+            display: inline-block !important;
+            font-family: "Font Awesome 5 Free" !important;
+            font-weight: 900 !important;
+            font-style: normal !important;
+        }
+        .far { font-weight: 400 !important; }
+
+        /* NAVBAR */
+        .topnavbar-wrapper {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1060;
+            background-color: #1a53ff !important;
+            height: 60px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .topnavbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+            padding: 0 20px;
+        }
+
+        .left-nav-section { display: flex; align-items: center; }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none !important;
+            color: white !important;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-right: 20px;
+        }
+
+        .brand-logo img { height: 35px; width: auto; margin-right: 10px; }
+
+        .nav-toggle-btn {
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px 15px;
+        }
+
+        /* SIDEBAR */
+        .aside-container {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            bottom: 0;
+            width: 250px;
+            background: #ffffff;
+            border-right: 1px solid #e1e1e1;
+            transition: all 0.3s ease-in-out;
+            z-index: 1040;
+            overflow-y: auto;
+        }
+
+        .sidebar-nav { list-style: none; padding: 10px 0; margin: 0; }
+        .sidebar-nav .nav-heading { 
+            padding: 15px 20px 5px 20px; 
+            color: #999; 
+            font-size: 11px; 
+            text-transform: uppercase; 
+            font-weight: bold;
+        }
+
+        .sidebar-nav li a { 
+            display: flex; 
+            align-items: center; 
+            padding: 12px 20px; 
+            color: #555; 
+            text-decoration: none; 
+            font-size: 15px;
+            transition: 0.2s;
+        }
+
+        .sidebar-nav li a:hover, .sidebar-nav li.active > a { 
+            background: #f0f7ff; 
+            color: #1a53ff; 
+            border-left: 4px solid #1a53ff;
+        }
+
+        .sidebar-nav i { 
+            width: 30px; 
+            font-size: 18px; 
+            color: #666; 
+            margin-right: 10px; 
+            text-align: center; 
+        }
+        .sidebar-nav li.active > a i { color: #1a53ff !important; }
+
+        /* DROPDOWN FIXES */
+        .dropdown-menu {
+            z-index: 1100 !important;
+            border: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+
+        .icon-container { 
+            position: relative; 
+            display: inline-block; 
+            cursor: pointer; 
+            color: white; 
+            padding: 5px;
+        }
+
+        .badge-notify {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #ff3b30;
+            color: white;
+            font-size: 10px;
+            height: 18px;
+            width: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: 2px solid #1a53ff;
+            font-weight: bold;
+        }
+
+        /* MAIN CONTENT & FOOTER */
+        .section-container, footer {
+            margin-left: 250px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .section-container {
+            padding: 90px 30px 40px 30px;
+            min-height: calc(100vh - 60px);
+            background-color: #ffffff;
+        }
+
+        footer { font-size: 13px; color: #777; background: white; }
+
+        /* COLLAPSE LOGIC */
+        body.aside-collapsed .aside-container { width: 70px; }
+        body.aside-collapsed .section-container, body.aside-collapsed footer { margin-left: 70px; }
+        body.aside-collapsed .sidebar-nav span, 
+        body.aside-collapsed .nav-heading, 
+        body.aside-collapsed .brand-logo span { display: none; }
+        body.aside-collapsed .sidebar-nav i { margin-right: 0; width: 100%; font-size: 22px; }
+        body.aside-collapsed .sidebar-subnav { display: none; }
+
+        /* CHILD MENU / SUBNAV */
+        .sidebar-subnav { list-style: none; padding: 0; background: #ffffff; }
+        .sidebar-subnav li a { padding: 10px 20px 10px 55px !important; font-size: 14px !important; }
     
-    <link rel="stylesheet" href="{% static 'vendor/@fortawesome/fontawesome-free/css/all.css' %}">
-    <link rel="stylesheet" href="{% static 'vendor/simple-line-icons/css/simple-line-icons.css' %}">
-    <link rel="stylesheet" href="{% static 'vendor/animate.css/animate.css' %}">
-    <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}" id="bscss">
-    <link rel="stylesheet" href="{% static 'css/app.css' %}" id="maincss">
+        /* Sidebar Icon Colors */
+        .icon-dashboard { color: #007bff !important; }
+        .icon-users { color: #6f42c1 !important; }
+        .icon-request { color: #fd7e14 !important; }
+        .icon-add { color: #28a745 !important; }
+        .icon-list { color: #17a2b8 !important; }
+        .icon-folder { color: #ffc107 !important; }
+        .icon-file { color: #e83e8c !important; }
+
+        /* Mobile View Fix */
+        @media (max-width: 768px) {
+            .section-container, footer { margin-left: 0 !important; }
+            .aside-container { left: -250px; }
+            body.aside-collapsed .aside-container { left: 0; width: 250px; }
+        }
+
+        /* Hover effect para sa icons */
+        .sidebar-nav li a:hover i {
+            transform: scale(1.1);
+            transition: 0.2s;
+        }
+    </style>
 </head>
 
-<body>
-   <div class="wrapper">
-      <header class="topnavbar-wrapper">
-         <nav class="navbar topnavbar">
-            <div class="navbar-header">
-               <a class="navbar-brand" href="/">
-                  <div class="brand-logo"><img class="img-fluid" src="{% static 'img/logo.png' %}" alt="Logo"></div>
-               </a>
-            </div>
-            <ul class="navbar-nav mr-auto flex-row">
-               <li class="nav-item">
-                  <a class="nav-link d-none d-md-block" href="#" data-trigger-resize="" data-toggle-state="aside-collapsed"><em class="fas fa-bars"></em></a>
-                  <a class="nav-link sidebar-toggle d-md-none" href="#" data-toggle-state="aside-toggled" data-no-persist="true"><em class="fas fa-bars"></em></a>
-               </li>
+<body class="layout-fixed">
+    <div class="wrapper">
+        <header class="topnavbar-wrapper">
+            <nav class="topnavbar">
+                <div class="left-nav-section">
+                    <a class="brand-logo" href="{% url 'super_admin_dashboard' %}">
+                        <img src="{% static 'img/divisionlogo.png' %}" alt="Logo">
+                        <span>DEPED ERDM</span>
+                    </a>
+                    <div class="nav-toggle-btn" id="sidebarToggle">
+                        <i class="fas fa-bars"></i>
+                    </div>
+                </div>
+
+                <div class="right-nav-section d-flex align-items-center">
+                    <div class="dropdown mx-2">
+                        <div class="icon-container" id="msgDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="far fa-envelope fa-lg"></i>
+                            <span class="badge-notify">0</span>
+                        </div>
+                        <div class="dropdown-menu dropdown-menu-right shadow border-0" aria-labelledby="msgDropdown" style="width: 280px;">
+                            <div class="dropdown-header border-bottom font-weight-bold">Messages</div>
+                            <div class="p-4 text-center">
+                                <i class="fas fa-envelope-open text-muted mb-2 fa-2x" style="opacity: 0.2;"></i>
+                                <p class="m-0 text-muted small">No new messages</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dropdown mx-2">
+                        <div class="icon-container" id="notifDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="far fa-bell fa-lg"></i>
+                            <span class="badge-notify">{% if pending_count > 0 %}{{ pending_count }}{% else %}0{% endif %}</span>
+                        </div>
+                        <div class="dropdown-menu dropdown-menu-right shadow border-0" aria-labelledby="notifDropdown" style="width: 280px;">
+                            <div class="dropdown-header border-bottom font-weight-bold">Notifications</div>
+                            {% if pending_count > 0 %}
+                                <a class="dropdown-item d-flex align-items-center py-3" href="{% url 'access_requests' %}">
+                                    <div class="mr-3">
+                                        <div class="bg-warning p-2 rounded-circle text-white">
+                                            <i class="fas fa-user-clock"></i>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="small text-muted">User Approval</div>
+                                        <span class="font-weight-bold">You have {{ pending_count }} pending request(s)</span>
+                                    </div>
+                                </a>
+                            {% else %}
+                                <div class="p-4 text-center">
+                                    <i class="fas fa-bell-slash text-muted mb-2 fa-2x" style="opacity: 0.2;"></i>
+                                    <p class="m-0 text-muted small">No new notifications</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="dropdown ml-3">
+                        <div class="icon-container" id="userDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-user-circle fa-2x text-white"></i>
+                        </div>
+                        <div class="dropdown-menu dropdown-menu-right shadow border-0" aria-labelledby="userDropdown" style="min-width: 200px;">
+                            <div class="p-3 text-center border-bottom bg-light">
+                                <p class="m-0 font-weight-bold">{{ request.user.get_full_name|default:request.user.username }}</p>
+                                <small class="text-muted">{{ request.user.email }}</small>
+                            </div>
+                            <a class="dropdown-item py-2" href="{% url 'employee_profile' %}"><i class="fas fa-user-edit mr-2 text-primary"></i> Profile</a>
+                            <a class="dropdown-item py-2" href="#"><i class="fas fa-cog mr-2 text-secondary"></i> Settings</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item py-2 text-danger" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt mr-2"></i> Logout</a>
+                        </div>
+                    </div>
+
+                </div>
+            </nav>
+        </header>
+
+        <aside class="aside-container">
+            <ul class="sidebar-nav">
+                <li class="nav-heading"><span>Main Menu</span></li>
+                
+                <li class="{% if request.resolver_match.url_name == 'super_admin_dashboard' %}active{% endif %}">
+                    <a href="{% url 'super_admin_dashboard' %}">
+                        <i class="fas fa-tachometer-alt icon-dashboard"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+
+                <li class="{% if 'super-admin' in request.path %}active{% endif %}">
+                    <a href="#user-mgmt" data-toggle="collapse" 
+                       class="d-flex align-items-center justify-content-between {% if 'super-admin' not in request.path %}collapsed{% endif %}">
+                        <div>
+                            <i class="fas fa-users-cog icon-users"></i>
+                            <span>User Management</span>
+                            {% if pending_count > 0 %}
+                                <span class="badge badge-danger ml-2 animate__animated animate__pulse animate__infinite" style="border-radius: 10px; font-size: 10px; padding: 2px 6px;">{{ pending_count }}</span>
+                            {% endif %}
+                        </div>
+                    </a>
+                    
+                    <ul class="sidebar-nav sidebar-subnav collapse {% if 'super-admin' in request.path %}show{% endif %}" id="user-mgmt">
+                        <li class="{% if request.resolver_match.url_name == 'access_requests' %}active{% endif %}">
+                            <a href="{% url 'access_requests' %}" class="d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-user-clock icon-request"></i><span>Access Requests</span></span>
+                                {% if pending_count > 0 %}
+                                    <span class="badge badge-pill badge-danger">{{ pending_count }}</span>
+                                {% endif %}
+                            </a>
+                        </li>
+
+                        <li class="{% if request.resolver_match.url_name == 'add_user' %}active{% endif %}">
+                            <a href="{% url 'add_user' %}">
+                                <i class="fas fa-user-plus icon-add"></i>
+                                <span>Add User</span>
+                            </a>
+                        </li>
+                        
+                        <li class="{% if request.resolver_match.url_name == 'user_management' %}active{% endif %}">
+                            <a href="{% url 'user_management' %}">
+                                <i class="fas fa-list icon-list"></i>
+                                <span>User List</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                
+                <li class="{% if 'memos' in request.path %}active{% endif %}">
+                    <a href="#doc-mgmt" data-toggle="collapse" class="{% if 'memos' not in request.path %}collapsed{% endif %}">
+                        <i class="fas fa-folder-open icon-folder"></i>
+                        <span>Documents</span>
+                    </a>
+                    <ul class="sidebar-nav sidebar-subnav collapse {% if 'memos' in request.path %}show{% endif %}" id="doc-mgmt">
+                        <li class="{% if request.resolver_match.url_name == 'received_documents' %}active{% endif %}">
+                            <a href="{% url 'received_documents' %}">
+                                <i class="fas fa-file-alt icon-file"></i>
+                                <span>Received Memos</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
             </ul>
-         </nav>
-      </header>
+        </aside>
 
-      {% if user.is_authenticated %}
-         {% include 'includes/sidebar.html' %}
-      {% endif %}
-
-      <section class="section-container">
-         <div class="content-wrapper">
-            <div class="content-heading">
-               <div>{% block page_title %}Dashboard{% endblock %} <small>{{ user.get_role }} View</small></div>
-            </div>
-            
+        <main class="section-container">
             {% block content %}
             {% endblock %}
-         </div>
-      </section>
+        </main>
 
-      <footer class="footer-container">
-         <span>&copy; 2026 - DepEd Memo System</span>
-      </footer>
-   </div>
+        <footer class="text-center py-3 bg-white border-top" id="appFooter">
+            <small>© 2026 DepEd ERDM System | Division of Catanduanes</small>
+        </footer>
+    </div>
 
-   <script src="{% static 'vendor/modernizr/modernizr.custom.js' %}"></script>
-   <script src="{% static 'vendor/jquery/dist/jquery.js' %}"></script>
-   <script src="{% static 'vendor/bootstrap/dist/js/bootstrap.js' %}"></script>
-   <script src="{% static 'vendor/js-storage/js.storage.js' %}"></script>
-   <script src="{% static 'js/app.js' %}"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function(){
+            // Sidebar Toggle Function
+            $("#sidebarToggle").on('click', function(){
+                $("body").toggleClass("aside-collapsed");
+            });
+
+            // Global SweetAlert Logic for Django Messages
+            {% if messages %}
+                {% for message in messages %}
+                    Swal.fire({
+                        icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% else %}info{% endif %}",
+                        title: "{% if message.tags == 'success' %}Success!{% elif message.tags == 'error' %}Error!{% else %}Notice{% endif %}",
+                        text: "{{ message|safe }}",
+                        confirmButtonColor: '#1a53ff',
+                        timer: 4000,
+                        timerProgressBar: true
+                    });
+                {% endfor %}
+            {% endif %}
+        });
+    </script>
 </body>
 </html>

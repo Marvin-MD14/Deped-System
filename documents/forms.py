@@ -1,15 +1,27 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, PasswordResetForm
 from .models import User, School
 
+# --- REGISTRATION FORM ---
 
 class EmployeeRegistrationForm(UserCreationForm):
     email = forms.EmailField(
-        label="Email Address",
+        label="DepEd Email Address",
         widget=forms.EmailInput(attrs={
             'class': 'form-control',
             'placeholder': 'name@deped.gov.ph'
-        })
+        }),
+        help_text="This will be used for your login username."
+    )
+
+    personal_email = forms.EmailField(
+        label="Personal Gmail Address",
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'yourname@gmail.com'
+        }),
+        help_text="Notifications and password reset links will be sent here."
     )
 
     full_name = forms.CharField(
@@ -61,22 +73,33 @@ class EmployeeRegistrationForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ("email", "full_name", "school", "gender", "password1", "password2")
+        fields = ("email", "personal_email", "full_name", "school", "gender", "password1", "password2")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        # Remove default Django help texts (clean UI)
+        # Tanggalin ang default help texts ng Django para malinis ang UI
         self.fields['password1'].help_text = None
         self.fields['password2'].help_text = None
 
     def clean_email(self):
-        email = self.cleaned_data.get('email')
+        """Siguraduhin na @deped.gov.ph ang gamit at unique."""
+        email = self.cleaned_data.get('email').lower()
+        if not email.endswith('@deped.gov.ph'):
+            raise forms.ValidationError("Please use your official @deped.gov.ph email address.")
+        
         if User.objects.filter(email__iexact=email).exists():
-            raise forms.ValidationError("This email is already registered.")
+            raise forms.ValidationError("This DepEd email is already registered.")
         return email
 
+    def clean_personal_email(self):
+        """Siguraduhin na Gmail ang recovery email."""
+        p_email = self.cleaned_data.get('personal_email').lower()
+        if not p_email.endswith('@gmail.com'):
+            raise forms.ValidationError("Please provide a valid @gmail.com address for recovery.")
+        return p_email
+
     def clean_password2(self):
+        """Validation para sa pagtutugma ng password."""
         password1 = self.cleaned_data.get('password1')
         password2 = self.cleaned_data.get('password2')
 
@@ -84,22 +107,54 @@ class EmployeeRegistrationForm(UserCreationForm):
             raise forms.ValidationError("The two password fields didn't match.")
         return password2
 
-    def save(self, commit=True):
+    def save(self, commit=True, is_admin_creation=False):
         user = super().save(commit=False)
-
-        # Use email as username
-        user.username = user.email
+        # Ang DepEd Email ang magsisilbing username at primary email
+        user.username = self.cleaned_data["email"]
+        user.email = self.cleaned_data["email"]
+        
+        # Karagdagang data
+        user.personal_email = self.cleaned_data["personal_email"]
         user.full_name = self.cleaned_data["full_name"]
         user.gender = self.cleaned_data["gender"]
         user.school = self.cleaned_data["school"]
 
-        # Role flags
         user.is_employee = True
-        user.is_deped_admin = False
-        user.is_deped_secretary = False
-        user.is_school_head = False
+        
+        # LOGIC: Kung Admin ang gumawa, Active agad. Kung self-register, Inactive (for approval).
+        if is_admin_creation:
+            user.is_active = True
+        else:
+            user.is_active = False
 
         if commit:
             user.save()
-
         return user
+
+# --- PASSWORD RESET FORM (GMAIL RECOVERY LOGIC) ---
+
+class CustomPasswordResetForm(PasswordResetForm):
+    """
+    Ito ang form na gagamitin sa Forgot Password.
+    Customized ito para hanapin ang user gamit ang kanilang 
+    Personal Gmail (personal_email field).
+    """
+    email = forms.EmailField(
+        label="Personal Gmail Address",
+        max_length=254,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your registered @gmail.com'
+        })
+    )
+
+    def get_users(self, email):
+        """
+        Hahanapin ng system ang account gamit ang 'personal_email' 
+        sa halip na ang default na 'email' field.
+        """
+        active_users = User.objects.filter(
+            personal_email__iexact=email, 
+            is_active=True # Dapat approved muna ang user para makapag-reset
+        )
+        return active_users

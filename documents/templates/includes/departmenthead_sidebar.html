@@ -1,0 +1,50 @@
+{% load static %}
+<div class="aside-inner">
+    <nav class="sidebar" data-sidebar-anyclick-close="">
+        <ul class="sidebar-nav">
+            <li class="has-user-block">
+                <div class="collapse show" id="user-block">
+                    <div class="item user-block">
+                        <div class="user-block-picture">
+                            <div class="user-block-status">
+                                <img class="img-thumbnail rounded-circle" src="{% if user.userprofile.profile_picture %}{{ user.userprofile.profile_picture.url }}{% else %}{% static 'assets/img/dummy.png' %}{% endif %}" alt="Avatar" width="60" height="60">
+                                <div class="circle bg-success circle-lg"></div>
+                            </div>
+                        </div>
+                        <div class="user-block-info">
+                            <span class="user-block-name">{{ user.get_full_name|default:user.username }}</span>
+                            <span class="user-block-role">{{ user.userprofile.role|default:'Dept Head' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            <li class="nav-heading"><span>Admin Navigation</span></li>
+            <li class="active">
+                <a href="#" title="Dashboard">
+                    <em class="icon-speedometer"></em>
+                    <span>Dept Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="#memo-approvals" title="Memos" data-toggle="collapse">
+                    <em class="icon-check"></em>
+                    <span class="badge badge-warning float-right">5</span>
+                    <span>For Approval</span>
+                </a>
+                <ul class="sidebar-nav sidebar-subnav collapse" id="memo-approvals">
+                    <li class="sidebar-subnav-header">Approvals</li>
+                    <li><a href="#"><span>Pending Memos</span></a></li>
+                    <li><a href="#"><span>Signed/Released</span></a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#" title="My Department">
+                    <em class="icon-briefcase"></em>
+                    <span>Staff Directory</span>
+                </a>
+            </li>
+            <li class="nav-heading"><span>Account</span></li>
+            <li><a href="{% url 'logout' %}"><em class="icon-logout"></em><span>Logout</span></a></li>
+        </ul>
+    </nav>
+</div>

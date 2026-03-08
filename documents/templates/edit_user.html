@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid p-2" style="background-color: #f8fafc; min-height: 100vh;">
+    <!-- <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb bg-transparent p-0">
+            <li class="breadcrumb-item">
+                <a href="{% url 'user_management' %}" class="text-decoration-none text-muted">
+                    User Management
+                </a>
+            </li>
+            <li class="breadcrumb-item active text-primary font-weight-bold">
+                Professional Profile
+            </li>
+        </ol>
+    </nav> -->
+
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 overflow-hidden" style="border-radius:15px;">
+
+                <div class="profile-header-bg"
+                     style="height:140px;background:linear-gradient(135deg,#075985 0%,#0284c7 50%,#38bdf8 100%);position:relative;">
+                    <div class="position-absolute w-100 text-right p-3" style="bottom:0;">
+                        <span class="text-white-50 small font-weight-bold">
+                            System ID: #ERDM-{{ user_profile.id|stringformat:"04d" }}
+                        </span>
+                    </div>
+                </div>
+
+                <form method="POST" enctype="multipart/form-data" id="profileForm">
+                    {% csrf_token %}
+
+                    <div class="card-body pt-0 px-3 px-md-4">
+                        <div class="row">
+
+                            <div class="col-lg-3 text-center mt-n5 mb-4 profile-sidebar">
+                                <div class="position-relative d-inline-block mt-n2">
+                                    <div class="profile-img-container shadow-lg bg-white p-2 rounded-circle">
+                                        <img id="profilePreview"
+                                             src="{% if user_profile.profile_picture %}{{ user_profile.profile_picture.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}"
+                                             class="rounded-circle shadow-inner"
+                                             style="width:180px;height:180px;object-fit:cover;border:2px solid #f1f5f9;">
+
+                                        <label for="id_profile_picture"
+                                               class="upload-btn shadow-sm d-none"
+                                               id="cameraBtn"
+                                               style="position:absolute; bottom:10px; right:10px; background:#0284c7; color:white; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:3px solid white;">
+                                            <i class="fas fa-camera"></i>
+                                        </label>
+                                    </div>
+
+                                    <input type="file"
+                                           id="id_profile_picture"
+                                           name="profile_picture"
+                                           class="d-none"
+                                           onchange="previewImage(this)"
+                                           disabled>
+                                </div>
+
+                                <div class="mt-3 px-2">
+                                    <h4 class="font-weight-bold text-dark mb-1">
+                                        {{ user_profile.full_name }}
+                                    </h4>
+                                    <p class="text-primary font-weight-bold mb-2">
+                                        {{ user_profile.position|default:"No Position Set" }}
+                                    </p>
+
+                                    <hr class="my-3">
+
+                                    <div class="text-left">
+                                        <div class="d-flex align-items-center mb-2 p-2 bg-light rounded-lg border-left border-primary">
+                                            <div class="icon-box bg-white shadow-sm mr-2 text-primary d-flex align-items-center justify-content-center" style="width:30px; height:30px; border-radius:8px;">
+                                                <i class="fas fa-shield-alt fa-xs"></i>
+                                            </div>
+                                            <div class="overflow-hidden w-100">
+                                                <small class="text-muted d-block" style="font-size:10px;">
+                                                    DepEd Account
+                                                </small>
+                                                <span class="small font-weight-bold text-dark text-truncate d-block">
+                                                    {{ user_profile.deped_email|default:user_profile.email }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-9 pt-3">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="font-weight-bold text-dark m-0">
+                                        <span class="bg-primary-soft p-2 rounded mr-2" style="background-color: #e0f2fe;">
+                                            <i class="fas fa-user-check text-primary"></i>
+                                        </span>
+                                        Professional Credentials
+                                    </h5>
+
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge badge-pill badge-light text-muted px-3 border mr-2">
+                                            Last Login: {{ user_profile.last_login|date:"M d, Y"|default:"Never" }}
+                                        </span>
+                                        <button type="button"
+                                                id="editToggleButton"
+                                                class="btn btn-sm btn-primary shadow-sm px-3"
+                                                onclick="enableEditing()">
+                                            <i class="fas fa-edit mr-1"></i> Edit Profile
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="row px-2">
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label font-weight-bold small text-muted">Full Name</label>
+                                        <input type="text" name="full_name" class="form-control editable-field" 
+                                               value="{{ user_profile.full_name }}" disabled required>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label font-weight-bold small text-muted">Official DepEd Email</label>
+                                        <input type="email" name="deped_email" class="form-control editable-field" 
+                                               value="{{ user_profile.deped_email }}" disabled>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label font-weight-bold small text-muted">Alternative Gmail</label>
+                                        <input type="email" name="personal_email" class="form-control editable-field" 
+                                               value="{{ user_profile.personal_email }}" disabled>
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label font-weight-bold small text-muted">Position</label>
+                                        <select name="position" class="form-control editable-field" disabled>
+                                            <option value="Head Teacher" {% if user_profile.position == "Head Teacher" %}selected{% endif %}>Head Teacher</option>
+                                            <option value="School Principal" {% if user_profile.position == "School Principal" %}selected{% endif %}>School Principal</option>
+                                            <option value="Teacher In Charge" {% if user_profile.position == "Teacher In Charge" %}selected{% endif %}>Teacher In Charge</option>
+                                            <option value="Teacher" {% if user_profile.position == "Teacher" %}selected{% endif %}>Teacher</option>
+                                            <option value="Admin Staff" {% if user_profile.position == "Admin Staff" %}selected{% endif %}>Admin Staff</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label font-weight-bold small text-muted">Education Level</label>
+                                        <select name="education_level" class="form-control editable-field" disabled>
+                                            <option value="Elementary" {% if user_profile.education_level == "Elementary" %}selected{% endif %}>Elementary</option>
+                                            <option value="Secondary" {% if user_profile.education_level == "Secondary" %}selected{% endif %}>Secondary</option>
+                                            <option value="Senior High School" {% if user_profile.education_level == "Senior High School" %}selected{% endif %}>Senior High School</option>
+                                            <option value="SDO Office" {% if user_profile.education_level == "SDO Office" %}selected{% endif %}>SDO Office</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label font-weight-bold small text-muted">School ID</label>
+                                        <input type="text" name="employee_id" class="form-control editable-field" 
+                                               value="{{ user_profile.employee_id }}" disabled>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label font-weight-bold small text-muted">School</label>
+                                        <select name="school" class="form-control editable-field" disabled>
+                                            {% for s in schools %}
+                                            <option value="{{ s.id }}" {% if user_profile.school.id == s.id %}selected{% endif %}>
+                                                {{ s.name }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label font-weight-bold small text-muted">Contact Number</label>
+                                        <input type="text" name="contact_no" class="form-control editable-field" 
+                                               value="{{ user_profile.contact_no }}" disabled>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label font-weight-bold small text-muted">Year Entered Service</label>
+                                        <input type="number" name="year_graduated" class="form-control editable-field" 
+                                               value="{{ user_profile.year_graduated }}" disabled>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end align-items-center mt-4 mb-4 pt-3 border-top">
+                                    <a href="{% url 'user_management' %}" class="btn btn-light px-4 mr-2 text-muted font-weight-bold">
+                                        Back
+                                    </a>
+                                    <button type="submit" id="submitBtn" class="btn btn-primary px-5 shadow-sm border-0 d-none">
+                                        Update Profile
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function enableEditing(){
+    document.getElementById('cameraBtn').classList.remove('d-none');
+    document.getElementById('submitBtn').classList.remove('d-none');
+    document.getElementById('editToggleButton').classList.add('d-none');
+
+    const fields = document.querySelectorAll('.editable-field');
+    fields.forEach(field => {
+        field.disabled = false;
+    });
+
+    document.getElementById('id_profile_picture').disabled = false;
+}
+
+function previewImage(input){
+    if(input.files && input.files[0]){
+        const reader = new FileReader();
+        reader.onload = function(e){
+            document.getElementById('profilePreview').src = e.target.result;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+
+<style>
+    .bg-primary-soft { background-color: #e0f2fe; }
+    .upload-btn:hover { transform: scale(1.1); transition: 0.3s; }
+    .form-control:focus { border-color: #0284c7; box-shadow: 0 0 0 0.2rem rgba(2, 132, 199, 0.25); }
+    .profile-img-container { width: 196px; height: 196px; margin: 0 auto; }
+</style>
+
+{% endblock %}

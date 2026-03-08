@@ -83,6 +83,13 @@
             text-shadow: 0 2px 4px rgba(255, 255, 255, 0.5);
         }
 
+        .brand-tagline {
+            color: #0369a1;
+            margin-top: 15px;
+            font-size: 1.1rem;
+            max-width: 500px;
+        }
+
         /* Right Side (Form) */
         .form-section {
             width: 550px;
@@ -92,15 +99,6 @@
             position: relative;
             height: 100vh;
         }
-
-        .form-header h2 {
-            font-weight: 800;
-            color: #0f172a;
-            font-size: 1.85rem;
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
-        }
-
 
         .login-content-wrapper {
             flex: 1;
@@ -152,6 +150,7 @@
             border-color: var(--brand-primary);
             background: #ffffff;
             outline: none;
+            box-shadow: none;
         }
 
         .auth-options {
@@ -215,13 +214,8 @@
         }
 
         @keyframes drift {
-            from {
-                transform: rotate(0deg);
-            }
-
-            to {
-                transform: rotate(360deg);
-            }
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         @keyframes fadeInDown {
@@ -229,7 +223,6 @@
                 opacity: 0;
                 transform: translateY(-20px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -237,13 +230,8 @@
         }
 
         @media (max-width: 1100px) {
-            .brand-section {
-                display: none;
-            }
-
-            .form-section {
-                width: 100%;
-            }
+            .brand-section { display: none; }
+            .form-section { width: 100%; }
         }
     </style>
 </head>
@@ -263,8 +251,7 @@
             <div class="brand-content">
                 <img src="{% static 'img/depedlogo.png' %}" class="brand-logo-main" alt="DepEd Logo">
                 <h1 class="brand-title">Systematic Memorandum Automation <br>& Reporting Services</h1>
-                <p class="brand-tagline">Division of Catanduanes: Streamlining memorandum tracking for faster
-                    administration.</p>
+                <p class="brand-tagline">Division of Catanduanes: Streamlining memorandum tracking for faster administration.</p>
             </div>
         </div>
 
@@ -277,11 +264,11 @@
                     </h2>
                     <p class="text-muted mb-4">Division Systematic Memorandum Automation</p>
 
-                    <form method="post">
+                    <form method="post" action="{% url 'login' %}">
                         {% csrf_token %}
                         <div class="form-group">
                             <label>Email Address</label>
-                            <input class="form-control" type="email" name="username" placeholder="name@deped.gov.ph"
+                            <input class="form-control" type="text" name="username" placeholder="name@deped.gov.ph"
                                 pattern="[a-z0-9._%+-]+@deped\.gov\.ph$"
                                 title="Please use your official DepEd email address (@deped.gov.ph)" required>
                         </div>
@@ -309,7 +296,7 @@
                     </form>
 
                     <div class="mt-4 text-muted" style="font-size: 0.95rem;">
-                        Don`t have an account?
+                        Don't have an account?
                         <a href="{% url 'register' %}" class="fw-bold text-decoration-none"
                             style="color: var(--brand-primary);">Register here</a>
                     </div>
@@ -336,15 +323,12 @@
             {% if messages %}
             {% for message in messages %}
             Swal.fire({
-                // Ang title ay nagbabago base sa success o error
                 title: '{% if message.tags == "success" %}SUCCESS{% else %}LOGIN ERROR{% endif %}',
                 text: '{{ message }}',
-                // Lalabas ang Error (X) icon kapag hindi success
                 icon: '{% if message.tags == "success" %}success{% else %}error{% endif %}',
                 iconColor: '#ffffff',
                 width: '380px',
                 color: '#ffffff',
-                // Magbabago ang background color base sa message type
                 background: '{% if message.tags == "success" %}linear-gradient(135deg, #10b981 0%, #059669 100%){% else %}linear-gradient(135deg, #f87171 0%, #dc2626 100%){% endif %}',
                 showConfirmButton: true,
                 confirmButtonText: 'Close',

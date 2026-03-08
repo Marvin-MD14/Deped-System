@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Access Requests | DepEd ERDM{% endblock %}
+
+{% block content %}
+<div class="content-heading">
+    <div>
+        User Access Requests
+        <small>Approve or Reject new employee registrations.</small>
+    </div>
+</div>
+
+<div class="card card-default">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title">Pending Requests</h3>
+        <span class="badge badge-warning">{{ pending_users|length }} Pending</span>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>School</th>
+                        <th>Date Requested</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in pending_users %}
+                    <tr>
+                        <td><strong>{{ user.full_name }}</strong></td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.school.name|default:"N/A" }}</td>
+                        <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-success action-btn" 
+                                    data-id="{{ user.id }}" 
+                                    data-action="approve" 
+                                    data-toggle="tooltip" 
+                                    title="Approve User">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger action-btn" 
+                                    data-id="{{ user.id }}" 
+                                    data-action="reject" 
+                                    data-toggle="tooltip" 
+                                    title="Reject Request">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">No pending access requests.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Initialize Tooltips (Safe check if jQuery/Bootstrap is ready)
+    if (typeof bootstrap !== 'undefined' || typeof $ !== 'undefined') {
+        $('[data-toggle="tooltip"]').tooltip();
+    }
+
+    // 2. Event Listener para sa mga buttons
+    document.addEventListener('click', function(e) {
+        // Hanapin kung ang click ay galing sa .action-btn o sa icon sa loob nito
+        const button = e.target.closest('.action-btn');
+        if (!button) return;
+
+        const userId = button.getAttribute('data-id');
+        const action = button.getAttribute('data-action');
+        const actionText = action === 'approve' ? 'approve this user?' : 'reject and delete this request?';
+        const confirmColor = action === 'approve' ? '#27ae60' : '#e74c3c';
+
+        // Itago ang tooltip gamit ang jQuery kung available
+        if (typeof $ !== 'undefined') { $(button).tooltip('hide'); }
+
+        // SweetAlert prompt
+        Swal.fire({
+            title: 'Are you sure?',
+            text: `Do you want to ${actionText}`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: confirmColor,
+            confirmButtonText: 'Yes, proceed!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                
+                // Loading screen
+                Swal.fire({
+                    title: 'Processing...',
+                    text: 'Updating account and sending notification email.',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                // Fetch API (Standard browser feature, no jQuery needed)
+                fetch(`/super-admin/approve-user/${userId}/${action}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        Swal.fire('Success!', data.message, 'success').then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error!', data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire('System Error', 'Cannot connect to the server.', 'error');
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

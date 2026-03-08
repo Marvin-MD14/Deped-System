@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4 px-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden; background-color: white;">
+                <div class="card-body p-4">
+                    <form method="post" id="addUserForm" novalidate>
+                        {% csrf_token %}
+
+                        <div class="section-title mb-4">
+                            <h6 class="text-uppercase text-muted font-weight-bold small" style="letter-spacing: 1px;">
+                                <i class="fas fa-id-card-alt mr-2 text-secondary"></i>Account Details
+                            </h6>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="text-dark small font-weight-bold">Full Name</label>
+                                {{ form.full_name }}
+                                {% if form.full_name.errors %}
+                                    <div class="text-danger small mt-1">{{ form.full_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="text-dark small font-weight-bold">DepEd Email (Username)</label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="text-dark small font-weight-bold">Personal Gmail (Recovery)</label>
+                                {{ form.personal_email }}
+                                {% if form.personal_email.errors %}
+                                    <div class="text-danger small mt-1">{{ form.personal_email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="text-dark small font-weight-bold">Initial Password</label>
+                                {{ form.password1 }}
+                                {% if form.password1.errors %}
+                                    <div class="text-danger small mt-1">{{ form.password1.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="text-dark small font-weight-bold">Confirm Password</label>
+                                {{ form.password2 }}
+                                {% if form.password2.errors %}
+                                    <div class="text-danger small mt-1">{{ form.password2.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="text-dark small font-weight-bold">School/Office</label>
+                                {{ form.school }}
+                                {% if form.school.errors %}
+                                    <div class="text-danger small mt-1">{{ form.school.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="text-dark small font-weight-bold">Gender</label>
+                                {{ form.gender }}
+                                {% if form.gender.errors %}
+                                    <div class="text-danger small mt-1">{{ form.gender.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mt-4 d-flex justify-content-end border-top pt-4">
+                            <a href="{% url 'user_management' %}" class="btn btn-light px-5 mr-3" style="border-radius: 8px; font-weight: 600; color: #666;">Cancel</a>
+                            <button type="submit" class="btn btn-primary px-5" id="submitBtn" style="border-radius: 8px; background-color: #1a53ff; border: none; font-weight: 600;">
+                                <span id="btnText">Register User</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom Styling para sa Form Inputs mula sa Django Form */
+    .form-control, .form-select, select, input[type="text"], input[type="email"], input[type="password"] {
+        display: block;
+        width: 100% !important;
+        padding: 12px 15px !important;
+        font-size: 1rem !important;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #ced4da !important;
+        border-radius: 6px !important;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .form-control:focus, .form-select:focus, select:focus, input:focus {
+        border-color: #1a53ff !important;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(26, 83, 255, 0.1) !important;
+    }
+
+    .section-title h6 {
+        border-left: 4px solid #1a53ff;
+        padding-left: 10px;
+        color: #4a5568 !important;
+    }
+
+    /* Padding adjustment para sa card */
+    .card {
+        margin-bottom: 2rem;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('addUserForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+
+        form.addEventListener('submit', function(e) {
+            // Check if form is valid before showing loading state
+            if(form.checkValidity()) {
+                // Pinipigilan ang double submission
+                submitBtn.disabled = true; 
+                submitBtn.style.opacity = '0.7';
+                submitBtn.style.cursor = 'not-allowed';
+                btnText.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i>Processing...';
+            }
+        });
+    });
+</script>
+{% endblock %}

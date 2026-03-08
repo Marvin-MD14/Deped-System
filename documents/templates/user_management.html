@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h3 class="text-dark font-weight-bold">User Management</h3>
+            <p class="text-muted small">Overview of all registered accounts in the system.</p>
+        </div>
+        <div class="col-md-6 text-md-right">
+            <a href="{% url 'add_user' %}" class="btn btn-primary px-4 shadow-sm" style="border-radius: 8px; background-color: #0284c7;">
+                <i class="fas fa-user-plus mr-2"></i>Register New User
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0" style="border-radius: 15px;">
+        <div class="card-header bg-white py-3">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h5 class="m-0 font-weight-bold text-primary">User List</h5>
+                </div>
+                <div class="col-auto">
+                    <div class="input-group input-group-sm" style="width: 250px;">
+                        <input type="text" class="form-control" placeholder="Search user..." id="userSearch">
+                        <div class="input-group-append">
+                            <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="userTable">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="py-3 pl-4 border-0">Full Name</th>
+                            <th class="py-3 border-0">Email Address</th>
+                            <th class="py-3 border-0">School/Office</th>
+                            <th class="py-3 border-0">Role</th>
+                            <th class="py-3 border-0 text-center">Status</th>
+                            <th class="py-3 border-0 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr id="user-row-{{ user.id }}">
+                            <td class="py-3 pl-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle mr-3 bg-soft-primary text-primary d-flex align-items-center justify-content-center">
+                                        {{ user.full_name|slice:":1"|upper }}
+                                    </div>
+                                    <span class="font-weight-bold text-dark">{{ user.full_name }}</span>
+                                </div>
+                            </td>
+                            <td class="py-3 text-muted">{{ user.email }}</td>
+                            <td class="py-3 text-muted">{{ user.school|default:"N/A" }}</td>
+                            <td class="py-3">
+                                <span class="badge badge-soft-info px-3 py-2" style="border-radius: 20px;">
+                                    {{ user.role|default:"Employee" }}
+                                </span>
+                            </td>
+                            <td class="py-3 text-center">
+                                {% if user.is_active %}
+                                    <span class="badge badge-success px-2 py-1">Active</span>
+                                {% else %}
+                                    <span class="badge badge-secondary px-2 py-1">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3 text-center">
+                                <div class="btn-group">
+                                    <a href="{% url 'edit_user' user.id %}" class="btn btn-sm btn-outline-info mr-1" title="Edit Profile">
+                                        <i class="fas fa-user-edit"></i>
+                                    </a>
+                                    {% if user.id != request.user.id %}
+                                    <button class="btn btn-sm btn-outline-danger" title="Delete User" 
+                                            onclick="confirmDelete('{{ user.id }}', '{{ user.full_name }}')">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="fas fa-user-slash fa-3x mb-3" style="opacity: 0.2;"></i>
+                                <p>No users found in the system.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% csrf_token %}
+
+<style>
+    .table thead th { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; font-weight: 700; }
+    .table tbody td { vertical-align: middle; font-size: 14px; color: #334155; }
+    .avatar-circle { width: 35px; height: 35px; border-radius: 50%; background-color: #e0f2fe; color: #0369a1; font-weight: bold; }
+    .badge-soft-info { background-color: #e0f2fe; color: #0369a1; }
+    .table-hover tbody tr:hover { background-color: #f8fafc; }
+    .btn-outline-info { color: #0ea5e9; border-color: #0ea5e9; }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // 1. Toast Config (Para sa small success/error alerts sa top-right)
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+    });
+
+    // 2. DELETE LOGIC (Confirmation Modal)
+    function confirmDelete(userId, userName) {
+        // Gumamit ng Swal.fire nang direkta (hindi Toast) para bumalik sa center default
+        Swal.fire({
+            title: 'Delete User?',
+            text: `Are you sure you want to remove ${userName}? This action cannot be undone.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel',
+            position: 'center', // Sinisiguro na nasa gitna
+            backdrop: true,     // Naglalagay ng dark background sa likod ng modal
+            customClass: {
+                popup: 'animated fadeInDown' // Optional: animation effect
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                fetch(`/super-admin/delete-user/${userId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        document.getElementById(`user-row-${userId}`).remove();
+                        // Gagamit ng Toast dito para sa success notification sa gilid
+                        Toast.fire({
+                            icon: 'success',
+                            title: 'User deleted successfully'
+                        });
+                    } else {
+                        return response.json().then(data => {
+                            throw new Error(data.message || 'Error deleting user');
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Error alert sa gitna rin para mapansin
+                    Swal.fire({
+                        title: 'Error!',
+                        text: error.message,
+                        icon: 'error',
+                        position: 'center'
+                    });
+                });
+            }
+        });
+    }
+
+    // 3. SEARCH LOGIC
+    document.getElementById('userSearch').addEventListener('keyup', function() {
+        let filter = this.value.toUpperCase();
+        let rows = document.querySelector("#userTable tbody").rows;
+        for (let i = 0; i < rows.length; i++) {
+            let fullName = rows[i].cells[0].textContent.toUpperCase();
+            let email = rows[i].cells[1].textContent.toUpperCase();
+            if (fullName || email) {
+                rows[i].style.display = (fullName.includes(filter) || email.includes(filter)) ? "" : "none";
+            }
+        }
+    });
+</script>
+{% endblock %}
