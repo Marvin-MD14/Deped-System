@@ -1,6 +1,10 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, PasswordResetForm
+from django.contrib.auth import get_user_model
 from .models import User, School
+
+# Kunin ang kasalukuyang User model
+User = get_user_model()
 
 # --- REGISTRATION FORM ---
 
@@ -78,8 +82,10 @@ class EmployeeRegistrationForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Tanggalin ang default help texts ng Django para malinis ang UI
-        self.fields['password1'].help_text = None
-        self.fields['password2'].help_text = None
+        if 'password1' in self.fields:
+            self.fields['password1'].help_text = None
+        if 'password2' in self.fields:
+            self.fields['password2'].help_text = None
 
     def clean_email(self):
         """Siguraduhin na @deped.gov.ph ang gamit at unique."""
@@ -150,11 +156,11 @@ class CustomPasswordResetForm(PasswordResetForm):
 
     def get_users(self, email):
         """
-        Hahanapin ng system ang account gamit ang 'personal_email' 
-        sa halip na ang default na 'email' field.
+        Overrides the default method to search in personal_email field
+        instead of the primary email field.
         """
         active_users = User.objects.filter(
             personal_email__iexact=email, 
-            is_active=True # Dapat approved muna ang user para makapag-reset
+            is_active=True 
         )
         return active_users

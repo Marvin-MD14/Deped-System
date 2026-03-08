@@ -3,7 +3,7 @@ from . import views
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
-from .forms import CustomPasswordResetForm  # Import para sa Gmail-based recovery logic
+from .forms import CustomPasswordResetForm
 
 urlpatterns = [
     # ==============================
@@ -30,7 +30,6 @@ urlpatterns = [
     path('super-admin/delete-user/<int:user_id>/', views.delete_user, name='delete_user'),
     path('super-admin/access-requests/', views.access_requests, name='access_requests'),
     
-    # Approval Logic Paths
     path('super-admin/pending-approvals/', views.pending_approvals, name='pending_approvals'),
     path('super-admin/approve-user/<int:user_id>/<str:action>/', views.approve_user_process, name='approve_user_process'),
     
@@ -47,28 +46,39 @@ urlpatterns = [
     # ==============================
     # --- PASSWORD RESET (GMAIL BASED) ---
     # ==============================
-    # Dito papasok ang Custom Form na ginawa natin para sa Gmail/personal_email
+    # 1. Page kung saan itatype ang email
     path('password-reset/', 
          auth_views.PasswordResetView.as_view(
              template_name='password_reset.html',
-             form_class=CustomPasswordResetForm
+             form_class=CustomPasswordResetForm,
+             email_template_name='password_reset_email.html',
+             subject_template_name='password_reset_subject.txt'
          ), 
          name='password_reset'),
          
+    # 2. Page na magsasabing "Check your email"
     path('password-reset/done/', 
-         auth_views.PasswordResetDoneView.as_view(template_name='password_reset_done.html'), 
+         auth_views.PasswordResetDoneView.as_view(
+             template_name='password_reset_done.html'
+         ), 
          name='password_reset_done'),
          
+    # 3. Ang link na iki-click mula sa email (UID at Token)
     path('password-reset-confirm/<uidb64>/<token>/', 
-         auth_views.PasswordResetConfirmView.as_view(template_name='password_reset_confirm.html'), 
+         auth_views.PasswordResetConfirmView.as_view(
+             template_name='password_reset_confirm.html'
+         ), 
          name='password_reset_confirm'),
          
+    # 4. Page na lalabas pagkatapos ma-update ang password
     path('password-reset-complete/', 
-         auth_views.PasswordResetCompleteView.as_view(template_name='password_reset_complete.html'), 
+         auth_views.PasswordResetCompleteView.as_view(
+             template_name='password_reset_complete.html'
+         ), 
          name='password_reset_complete'),
 ]
 
-# Pag-handle ng Media at Static files sa Development mode
+# Media at Static files handling
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
