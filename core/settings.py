@@ -134,3 +134,14 @@ MESSAGE_TAGS = {
     messages.WARNING: 'warning',
     messages.ERROR: 'danger',
 }
+# settings.py
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'marvinmedrana6@gmail.com'
+EMAIL_HOST_PASSWORD = 'ykqxzuhkdijgzedi' 
+
+# 3. Napakahalaga: Idagdag ito para malaman ng Gmail kung sino ang sender
+DEFAULT_FROM_EMAIL = 'DepEd DMS <marvinmedrana6@gmail.com>'
+SERVER_EMAIL = 'marvinmedrana6@gmail.com'

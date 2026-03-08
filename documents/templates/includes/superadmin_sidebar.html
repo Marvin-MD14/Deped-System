@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <li class="nav-heading"><span>Main Menu</span></li>
 
 <li class="{% if request.resolver_match.url_name == 'super_admin_dashboard' %}active{% endif %}">
@@ -57,3 +58,65 @@
         <li><a href="{% url 'received_documents' %}"><i class="fas fa-file-alt mr-2"></i><span>Received Memos</span></a></li>
     </ul>
 </li>
+=======
+{% load static %}
+<div class="aside-inner">
+   <nav class="sidebar">
+      <ul class="sidebar-nav">
+         <li class="has-user-block" style="border-bottom: 1px solid #f2f2f2; padding: 20px 0;">
+            <div class="text-center">
+               <img class="img-thumbnail rounded-circle" 
+                    src="{% if user.userprofile.profile_picture %}{{ user.userprofile.profile_picture.url }}{% else %}{% static 'assets/img/user/default.png' %}{% endif %}" 
+                    style="width: 70px; height: 70px;">
+               <div class="mt-2">
+                  <div class="font-weight-bold" style="color: #333;">{{ user.username }}</div>
+                  <small class="text-danger font-weight-bold">SUPERADMIN</small>
+               </div>
+            </div>
+         </li>
+
+         <li class="nav-heading"><span class="text-muted">Main Navigation</span></li>
+         
+         <li class="{% if request.resolver_match.url_name == 'superadmin_dashboard' %}active{% endif %}">
+            <a href="{% url 'superadmin_dashboard' %}">
+               <em class="icon-speedometer"></em>
+               <span>Admin Dashboard</span>
+            </a>
+         </li>
+
+         <li class="nav-heading"><span class="text-muted">System Management</span></li>
+         
+         <li>
+            <a href="#master-files" data-toggle="collapse">
+               <em class="icon-folder"></em>
+               <span>Master Files</span>
+            </a>
+            <ul class="sidebar-nav sidebar-subnav collapse" id="master-files">
+               <li><a href="{% url 'all_documents' %}"><span>All Uploads</span></a></li>
+               <li><a href="#"><span>Archival</span></a></li>
+            </ul>
+         </li>
+
+         <li class="{% if 'access-requests' in request.path %}active{% endif %}">
+            <a href="{% url 'access_requests' %}">
+               <em class="icon-user-follow"></em>
+               <span>Reg. Requests</span>
+            </a>
+         </li>
+
+         <li>
+            <a href="#"><em class="icon-people"></em><span>User Accounts</span></a>
+         </li>
+
+         <li class="nav-heading"><span class="text-muted">Settings</span></li>
+         
+         <li>
+            <a href="{% url 'logout' %}" class="text-danger">
+               <em class="icon-logout"></em>
+               <span>Sign Out</span>
+            </a>
+         </li>
+      </ul>
+   </nav>
+</div>
+>>>>>>> 2a655c12c6c8b21f5a50521e333da5482ea0df0f
