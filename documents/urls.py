@@ -39,14 +39,17 @@ urlpatterns = [
     path('profile/', views.employee_profile, name='employee_profile'),
 
     # ==============================
-    # --- DOCUMENTS ---
+    # --- DOCUMENTS / MEMOS ---
     # ==============================
     path('memos/received/', views.received_documents, name='received_documents'),
+    
+    # ITO ANG MGA DAGDAG PARA SA UPLOAD MODAL AT DELETE:
+    path('documents/my-uploads/', views.upload_document, name='upload_document'),
+    path('documents/delete/<int:doc_id>/', views.delete_document, name='delete_document'),
     
     # ==============================
     # --- PASSWORD RESET (GMAIL BASED) ---
     # ==============================
-    # 1. Page kung saan itatype ang email
     path('password-reset/', 
          auth_views.PasswordResetView.as_view(
              template_name='password_reset.html',
@@ -56,21 +59,18 @@ urlpatterns = [
          ), 
          name='password_reset'),
          
-    # 2. Page na magsasabing "Check your email"
     path('password-reset/done/', 
          auth_views.PasswordResetDoneView.as_view(
              template_name='password_reset_done.html'
          ), 
          name='password_reset_done'),
          
-    # 3. Ang link na iki-click mula sa email (UID at Token)
     path('password-reset-confirm/<uidb64>/<token>/', 
          auth_views.PasswordResetConfirmView.as_view(
              template_name='password_reset_confirm.html'
          ), 
          name='password_reset_confirm'),
          
-    # 4. Page na lalabas pagkatapos ma-update ang password
     path('password-reset-complete/', 
          auth_views.PasswordResetCompleteView.as_view(
              template_name='password_reset_complete.html'

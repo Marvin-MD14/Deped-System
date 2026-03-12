@@ -396,3 +396,61 @@ def received_documents(request):
     else:
         memos = Document.objects.filter(school=request.user.school).order_by('-date_uploaded')
     return render(request, 'received_documents.html', {'memos': memos})
+@login_required
+@require_http_methods(["GET", "POST"])
+def upload_document(request):
+    # Kapag ang user ay nag-click ng "Confirm Upload" sa SweetAlert2
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        try:
+            title = request.POST.get('title')
+            category = request.POST.get('category')
+            uploaded_file = request.FILES.get('file')
+
+            if not title or not uploaded_file:
+                return JsonResponse({'status': 'error', 'message': 'Title and File are required.'}, status=400)
+
+            # I-save sa Database
+            doc = Document.objects.create(
+                uploader=request.user,
+                title=title,
+                category=category,
+                file=uploaded_file,
+                school=request.user.school # Awtomatikong i-assign sa school ng user
+            )
+
+            return JsonResponse({
+                'status': 'success', 
+                'message': 'Document uploaded successfully!',
+                'doc_id': doc.id
+            })
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    # Kapag ni-load lang ang page (GET request)
+    # Dito natin kukunin ang stats para sa dashboard
+    user_docs = Document.objects.filter(uploader=request.user).order_by('-date_uploaded')
+    
+    context = {
+        'documents': user_docs,
+        'total_uploads': user_docs.count(),
+        'word_count': user_docs.filter(category='word').count(),
+        'excel_count': user_docs.filter(category='excel').count(),
+        'ppt_count': user_docs.filter(category='ppt').count(),
+        'pdf_count': user_docs.filter(category='pdf').count(),
+        'title': "My Uploaded Assets"
+    }
+    return render(request, 'upload_document.html', context)
+@login_required
+@require_http_methods(["POST"])
+def delete_document(request, doc_id):
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        doc = get_object_or_404(Document, id=doc_id)
+        
+        # Security check: Admin lang o ang uploader ang pwedeng mag-delete
+        if doc.uploader == request.user or request.user.is_superuser:
+            doc.delete()
+            return JsonResponse({'status': 'success', 'message': 'File deleted successfully.'})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Unauthorized action.'}, status=403)
+            
+    return JsonResponse({'status': 'error', 'message': 'Invalid request.'}, status=400)

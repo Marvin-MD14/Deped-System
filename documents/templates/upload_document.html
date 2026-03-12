@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Uploads | ERDMS{% endblock title %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+    :root { --primary-gradient: linear-gradient(135deg, #4361ee, #4cc9f0); }
+    .dashboard-wrapper { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafd; min-height: 100vh; padding: 1.5rem; }
+    .btn-upload-main { background: var(--primary-gradient); color: white; border: none; padding: 0.6rem 1.5rem; border-radius: 10px; font-weight: 600; cursor: pointer; }
+</style>
+
+<div class="dashboard-wrapper">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">My Uploaded Assets</h3>
+            <p class="text-muted small">View and manage all files you have contributed.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <div id="liveClock" class="bg-white px-3 py-2 rounded-pill shadow-sm border small fw-bold text-primary"></div>
+            <button type="button" class="btn btn-upload-main" id="btnShowUpload">
+                <i class="fas fa-plus-circle me-2"></i>Upload New Asset
+            </button>
+        </div>
+    </div>
+
+    </div>
+
+<div id="uploadFormContainer" style="display: none;">
+    <div class="text-start p-2">
+        <div class="mb-3">
+            <label class="small fw-bold text-muted text-uppercase mb-1 d-block">Document Title</label>
+            <input type="text" id="swalTitle" class="form-control bg-light p-3" placeholder="Enter title...">
+        </div>
+        <div class="mb-3">
+            <label class="small fw-bold text-muted text-uppercase mb-1 d-block">Category</label>
+            <select id="swalCategory" class="form-select bg-light p-3">
+                <option value="word">Word Document</option>
+                <option value="excel">Excel Spreadsheet</option>
+                <option value="ppt">PowerPoint Presentation</option>
+                <option value="pdf">PDF File</option>
+            </select>
+        </div>
+        <div class="mb-2">
+            <label class="small fw-bold text-muted text-uppercase mb-1 d-block">File Attachment</label>
+            <input type="file" id="swalFile" class="form-control bg-light p-2">
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Clock Logic
+        setInterval(() => {
+            const clock = document.getElementById('liveClock');
+            if(clock) clock.innerText = new Date().toLocaleString();
+        }, 1000);
+
+        // Upload Trigger
+        const btn = document.getElementById('btnShowUpload');
+        if (btn) {
+            btn.addEventListener('click', function() {
+                Swal.fire({
+                    title: 'Upload New Asset',
+                    html: document.getElementById('uploadFormContainer').innerHTML,
+                    showCancelButton: true,
+                    confirmButtonText: 'Confirm Upload',
+                    confirmButtonColor: '#4361ee',
+                    preConfirm: () => {
+                        const title = Swal.getPopup().querySelector('#swalTitle').value;
+                        const file = Swal.getPopup().querySelector('#swalFile').files[0];
+                        if (!title || !file) {
+                            Swal.showValidationMessage(`Please enter a title and select a file`);
+                        }
+                        return { title, category: Swal.getPopup().querySelector('#swalCategory').value, file };
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const formData = new FormData();
+                        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+                        formData.append('title', result.value.title);
+                        formData.append('category', result.value.category);
+                        formData.append('file', result.value.file);
+
+                        Swal.fire({ title: 'Uploading...', didOpen: () => Swal.showLoading() });
+
+                        fetch("{% url 'upload_document' %}", {
+                            method: 'POST',
+                            body: formData,
+                            headers: {'X-Requested-With': 'XMLHttpRequest'}
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if(data.status === 'success') location.reload();
+                            else Swal.fire('Error', data.message, 'error');
+                        });
+                    }
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}
