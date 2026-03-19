@@ -46,7 +46,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for user in users %}
+                        {% for user in page_obj %}
                         <tr id="user-row-{{ user.id }}">
                             <td class="py-3 pl-4">
                                 <div class="d-flex align-items-center">
@@ -60,7 +60,17 @@
                             <td class="py-3 text-muted">{{ user.school|default:"N/A" }}</td>
                             <td class="py-3">
                                 <span class="badge badge-soft-info px-3 py-2" style="border-radius: 20px;">
-                                    {{ user.role|default:"Employee" }}
+                                    {% if user.is_superuser %}
+                                        Super Admin
+                                    {% elif user.is_deped_secretary %}
+                                        Secretary
+                                    {% elif user.is_school_head %}
+                                        School Head
+                                    {% elif user.is_deped_admin %}
+                                        Admin
+                                    {% else %}
+                                        Employee
+                                    {% endif %}
                                 </span>
                             </td>
                             <td class="py-3 text-center">
@@ -96,6 +106,52 @@
                 </table>
             </div>
         </div>
+
+        <div class="card-footer bg-white border-0 py-3">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-muted small">
+                    Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} entries
+                </div>
+                
+                <div class="col-md-6">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-md-end justify-content-center mb-0">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                                    <span aria-hidden="true">Prev</span>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Prev</span>
+                            </li>
+                            {% endif %}
+
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                                    <span aria-hidden="true">Next</span>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Next</span>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -108,12 +164,34 @@
     .badge-soft-info { background-color: #e0f2fe; color: #0369a1; }
     .table-hover tbody tr:hover { background-color: #f8fafc; }
     .btn-outline-info { color: #0ea5e9; border-color: #0ea5e9; }
+    
+    /* Pagination Styling */
+    .pagination .page-link { 
+        color: #64748b; 
+        border: 1px solid #e2e8f0; 
+        margin: 0 2px; 
+        border-radius: 6px; 
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+    .pagination .page-item.active .page-link { 
+        background-color: #0284c7; 
+        border-color: #0284c7;
+        color: white; 
+    }
+    .pagination .page-link:hover { 
+        background-color: #f1f5f9; 
+        color: #0284c7;
+    }
+    .pagination .page-item.disabled .page-link {
+        color: #cbd5e1;
+        background-color: #f8fafc;
+    }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    // 1. Toast Config (Para sa small success/error alerts sa top-right)
     const Toast = Swal.mixin({
         toast: true,
         position: 'top-end',
@@ -122,9 +200,7 @@
         timerProgressBar: true
     });
 
-    // 2. DELETE LOGIC (Confirmation Modal)
     function confirmDelete(userId, userName) {
-        // Gumamit ng Swal.fire nang direkta (hindi Toast) para bumalik sa center default
         Swal.fire({
             title: 'Delete User?',
             text: `Are you sure you want to remove ${userName}? This action cannot be undone.`,
@@ -134,10 +210,10 @@
             cancelButtonColor: '#64748b',
             confirmButtonText: 'Yes, delete it!',
             cancelButtonText: 'Cancel',
-            position: 'center', // Sinisiguro na nasa gitna
-            backdrop: true,     // Naglalagay ng dark background sa likod ng modal
+            position: 'center',
+            backdrop: true,
             customClass: {
-                popup: 'animated fadeInDown' // Optional: animation effect
+                popup: 'animated fadeInDown'
             }
         }).then((result) => {
             if (result.isConfirmed) {
@@ -153,7 +229,6 @@
                 .then(response => {
                     if (response.ok) {
                         document.getElementById(`user-row-${userId}`).remove();
-                        // Gagamit ng Toast dito para sa success notification sa gilid
                         Toast.fire({
                             icon: 'success',
                             title: 'User deleted successfully'
@@ -166,7 +241,6 @@
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    // Error alert sa gitna rin para mapansin
                     Swal.fire({
                         title: 'Error!',
                         text: error.message,
@@ -178,14 +252,15 @@
         });
     }
 
-    // 3. SEARCH LOGIC
     document.getElementById('userSearch').addEventListener('keyup', function() {
         let filter = this.value.toUpperCase();
         let rows = document.querySelector("#userTable tbody").rows;
         for (let i = 0; i < rows.length; i++) {
-            let fullName = rows[i].cells[0].textContent.toUpperCase();
-            let email = rows[i].cells[1].textContent.toUpperCase();
-            if (fullName || email) {
+            let fullNameCell = rows[i].cells[0];
+            let emailCell = rows[i].cells[1];
+            if (fullNameCell && emailCell) {
+                let fullName = fullNameCell.textContent.toUpperCase();
+                let email = emailCell.textContent.toUpperCase();
                 rows[i].style.display = (fullName.includes(filter) || email.includes(filter)) ? "" : "none";
             }
         }

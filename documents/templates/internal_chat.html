@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="container-fluid pt-3">
+        <div class="card shadow-sm" style="height: 80vh;">
+            <div class="row no-gutters h-100">
+                <div class="col-md-4 border-right h-100 d-flex flex-column">
+                    <div class="p-3 border-bottom bg-light">
+                        <h5 class="m-0 font-weight-bold">Messages</h5>
+                    </div>
+                    <div class="overflow-auto flex-grow-1">
+                        <div class="list-group list-group-flush">
+                            {% for u in users %}
+                            <a href="#" class="list-group-item list-group-item-action border-0 d-flex align-items-center py-3">
+                                <img src="{% static 'img/default-user.png' %}" class="rounded-circle mr-3" width="40" height="40">
+                                <div>
+                                    <h6 class="mb-0 text-dark small font-weight-bold">{{ u.get_full_name|default:u.username }}</h6>
+                                    <small class="text-muted">Click to start conversation</small>
+                                </div>
+                            </a>
+                            {% empty %}
+                            <p class="text-center p-3 small text-muted">No other users found.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-8 h-100 d-flex flex-column bg-white">
+                    <div class="m-auto text-center">
+                        <i class="fab fa-facebook-messenger fa-4x mb-3" style="color: #e9ecef;"></i>
+                        <h5 class="text-muted">Select a contact to start messaging</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .list-group-item:hover { background-color: #f8f9fa; }
+    .list-group-item.active { background-color: #e7f3ff; color: #007bff; }
+</style>
+{% endblock %}

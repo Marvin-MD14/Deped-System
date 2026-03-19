@@ -51,8 +51,11 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                
                 # DITO NAKALAGAY ANG IYONG CONTEXT PROCESSOR PARA SA PENDING COUNTS
                 'documents.context_processors.global_user_counts', 
+                
+                'django.template.context_processors.media', # Para sa images/profile pictures
             ],
         },
     },
@@ -98,6 +101,7 @@ USE_TZ = True
 # 6. STATIC & MEDIA FILES
 STATIC_URL = '/static/'
 
+# Siguraduhin na ang mga folders na ito ay exist sa system mo
 STATICFILES_DIRS = []
 main_static = os.path.join(BASE_DIR, 'static')
 app_static = os.path.join(BASE_DIR, 'documents', 'static')
@@ -109,11 +113,11 @@ if os.path.exists(app_static):
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+# MEDIA configuration para sa mga uploaded Profile Pictures at Documents
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # 7. EMAIL CONFIGURATION (Gmail SMTP)
-# Mahalaga ito para sa Forgot Password/Reset Password logic
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
@@ -122,11 +126,13 @@ EMAIL_USE_SSL = False
 EMAIL_HOST_USER = 'marvinmedrana6@gmail.com'
 EMAIL_HOST_PASSWORD = 'ykqxzuhkdijgzedi' 
 DEFAULT_FROM_EMAIL = 'DepEd DMS <marvinmedrana6@gmail.com>'
+SERVER_EMAIL = 'marvinmedrana6@gmail.com'
 EMAIL_TIMEOUT = 30 
 
 # 8. MISC
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Pag-map ng Django Message Tags sa Bootstrap Classes para sa SweetAlert/Alerts
 MESSAGE_TAGS = {
     messages.DEBUG: 'secondary',
     messages.INFO: 'info',
@@ -134,14 +140,3 @@ MESSAGE_TAGS = {
     messages.WARNING: 'warning',
     messages.ERROR: 'danger',
 }
-# settings.py
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'marvinmedrana6@gmail.com'
-EMAIL_HOST_PASSWORD = 'ykqxzuhkdijgzedi' 
-
-# 3. Napakahalaga: Idagdag ito para malaman ng Gmail kung sino ang sender
-DEFAULT_FROM_EMAIL = 'DepEd DMS <marvinmedrana6@gmail.com>'
-SERVER_EMAIL = 'marvinmedrana6@gmail.com'

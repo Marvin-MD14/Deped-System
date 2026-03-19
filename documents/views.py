@@ -6,20 +6,18 @@ from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import never_cache
 from django.urls import reverse
-
-# Imports para sa Email
 from django.core.mail import send_mail
 from django.conf import settings
-
-# Imports para sa Password Reset (Built-in Views)
 from django.contrib.auth import views as auth_views
-
+from django.db.models import Count
+from django.core.paginator import Paginator
+from .models import School, Document, ReceivedDocument
 # Imports para sa models at forms
-from .models import User, School, Document
+from .models import User, School, Document, ReceivedDocument
 from .forms import EmployeeRegistrationForm, CustomPasswordResetForm
-
-# Kunin ang official User model
 User = get_user_model()
+# Kunin ang official User model
+User = get_object_or_404(get_user_model()) if not hasattr(get_user_model(), 'objects') else get_user_model()
 
 # Helper function para sa decorators
 def is_super_admin(user):
@@ -85,12 +83,10 @@ def register_view(request):
             })
 
         if form.is_valid():
-            # Ang validation ng @deped at @gmail ay handle na ng Form
             user = form.save() 
             messages.success(request, f'Welcome {user.full_name}! Your registration is pending for approval. You will receive a notification via your Gmail once approved.')
             return redirect('login')
         else:
-            # I-display ang specific errors mula sa form validation
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f"{error}")
@@ -111,7 +107,6 @@ class CustomPasswordResetView(auth_views.PasswordResetView):
     subject_template_name = 'password_reset_subject.txt'
     
     def form_valid(self, form):
-        # Dagdag validation: Siguraduhin na may nahanap na active user gamit ang Gmail na iyon
         email = form.cleaned_data.get('email')
         if not form.get_users(email).exists():
             messages.error(self.request, "No active account found with that Gmail address.")
@@ -132,33 +127,91 @@ def dashboard_selector(request):
         return redirect('admin_dashboard')
     elif getattr(user, 'is_school_head', False):
         return redirect('school_head_dashboard')
-
-    # 4. Regular Employee (Default)
     else:
         return redirect('employee_profile')
 
 # --- SUPER ADMIN VIEWS ---
-
 @login_required
-def super_admin_dashboard(request):
+def superadmin_dashboard(request):
+    """
+    Dashboard para sa System Administrator na may Charts at Pending Requests.
+    Nagpapakita ng kabuuang bilang ng users, schools, memos, at file distribution.
+    """
+    # 1. Security Check
     if not request.user.is_superuser:
         return redirect('dashboard_selector')
 
+    # 2. Query para sa FlexCards (Statistics Overview)
+    total_users = User.objects.count()
+    total_schools = School.objects.count()
+    total_memos = Document.objects.count()
+    
+    # Bilang ng mga dokumentong hindi pa nababasa
+    unread_requests_count = ReceivedDocument.objects.filter(is_read=False).count()
+    
+    # Bilang ng mga Users na pending approval (is_active=False) 
+    # Ito ang gagamitin para mag-sync sa sidebar badge mo
+    pending_approvals_count = User.objects.filter(is_active=False).count()
+
+    # 3. Query para sa Charts (File Distribution base sa Extension)
+    pdf_count = Document.objects.filter(file__icontains='.pdf').count()
+    word_count = Document.objects.filter(file__icontains='.doc').count()
+    excel_count = Document.objects.filter(file__icontains='.xls').count()
+    ppt_count = Document.objects.filter(file__icontains='.ppt').count()
+
+    # 4. Recent Data (Limitado sa huling 5 entries)
+    recent_uploads = Document.objects.all().order_by('-date_uploaded')[:5]
+    pending_requests_list = ReceivedDocument.objects.filter(is_read=False).order_by('-date_received')[:5]
+
+    # 5. Context Construction
     context = {
-        'total_users': User.objects.count(),
-        'total_schools': School.objects.count(),
-        'total_memos': Document.objects.count(),
-        'recent_users': User.objects.all().order_by('-date_joined')[:5],
+        # Card Counts
+        'total_users': total_users,
+        'total_schools': total_schools,
+        'total_memos': total_memos,
+        'unread_count': unread_requests_count,
+        'pending_count': pending_approvals_count, # Para sa badge sa sidebar
+        
+        # Chart Data
+        'pdf_count': pdf_count,
+        'word_count': word_count,
+        'excel_count': excel_count,
+        'ppt_count': ppt_count,
+        
+        # Tables/Lists
+        'recent_uploads': recent_uploads,
+        'pending_requests': pending_requests_list,
+        
+        # Page Meta
         'title': "System Super Admin"
     }
-    return render(request, 'super_admin_dashboard.html', context)
+    
+    return render(request, 'superadmin_dashboard.html', context)
 
 @login_required
 def user_management(request):
+    # Proteksyon: Siguraduhin na Super Admin lang ang makakapasok
     if not request.user.is_superuser:
         return redirect('dashboard_selector')
-    users = User.objects.all().order_by('-date_joined')
-    return render(request, 'user_management.html', {'users': users})
+    
+    # Kuhanin lahat ng users EXCEPT ang sarili mo (optional pero recommended)
+    # Inalis natin ang filters para lumabas ang Secretary, School Heads, atbp.
+    user_list = User.objects.all().exclude(id=request.user.id).order_by('-date_joined')
+
+    # Pagination: 10 users kada page
+    paginator = Paginator(user_list, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'user_management.html', {'page_obj': page_obj})
+
+    # 2. Pagination Logic
+    paginator = Paginator(user_list, 10) # 10 users kada page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # 3. I-pass ang 'page_obj' sa template
+    return render(request, 'user_management.html', {'page_obj': page_obj})
 
 @login_required
 def add_user(request):
@@ -168,9 +221,7 @@ def add_user(request):
     if request.method == 'POST':
         form = EmployeeRegistrationForm(request.POST)
         if form.is_valid():
-            # I-save bilang ACTIVE dahil Super Admin ang gumawa
             user = form.save(is_admin_creation=True) 
-            
             personal_email = form.cleaned_data.get('personal_email')
             deped_email = form.cleaned_data.get('email')
             full_name = form.cleaned_data.get('full_name')
@@ -184,46 +235,23 @@ def add_user(request):
             message = f"""
 Dear {full_name},
 
-Good day!
+Your account has been successfully created and ACTIVATED in the Systematic Memorandum Automation & Reporting Services (DMS).
 
-Your account has been successfully created and ACTIVATED in the Systematic Memorandum Automation & Reporting Services (DMS) by the ICT Administrator.
+Login ID: {deped_email}
+Status: Active
 
-You can now log in to the system using your official credentials:
-
-Official Email (Login ID): {deped_email}
-Recovery Gmail: {personal_email}
-Status: Active / Ready to Use
-
-Please log in here to access your dashboard:
-{system_link}
-
-Thank you!
+Login here: {system_link}
             """
-            
             try:
-                send_mail(
-                    subject,
-                    message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [personal_email],
-                    fail_silently=False,
-                )
+                send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [personal_email])
                 messages.success(request, f"User {user.email} created and activated successfully!")
             except Exception as e:
-                messages.warning(request, f"User activated, but notification email failed: {str(e)}")
+                messages.warning(request, f"User created, but notification failed: {str(e)}")
 
             return redirect('user_management')
-        else:
-            messages.error(request, "Failed to create user. Please check the form for errors.")
     else:
         form = EmployeeRegistrationForm()
-
-    return render(request, 'add_user.html', {
-        'form': form,
-        'title': "Create New User"
-    })
-
-# --- PENDING APPROVALS LOGIC ---
+    return render(request, 'add_user.html', {'form': form, 'title': "Create New User"})
 
 @user_passes_test(is_super_admin)
 def pending_approvals(request):
@@ -234,55 +262,23 @@ def pending_approvals(request):
 def approve_user_process(request, user_id, action):
     if request.method == 'POST':
         target_user = get_object_or_404(User, id=user_id)
-        
         if action == 'approve':
             target_user.is_active = True
             target_user.save()
-
-            # Sa Gmail ipapadala ang approval notice
+            
             recipient = target_user.personal_email or target_user.email
+            subject = 'Account Approved - DepEd DMS'
+            message = f"Dear {target_user.full_name},\n\nYour registration has been APPROVED. You can now log in using your DepEd email."
             
             try:
-                protocol = 'https' if request.is_secure() else 'http'
-                domain = request.get_host()
-                login_url = reverse('login')
-                system_link = f"{protocol}://{domain}{login_url}"
-
-                subject = 'Account Approved - DepEd DMS'
-                message = f"""
-Dear {target_user.full_name},
-
-Good day!
-
-Your registration for the Systematic Memorandum Automation & Reporting Services (DMS) has been APPROVED by the administrator.
-
-You can now log in to the system using your official DepEd email.
-
-Account Details:
-Login Email: {target_user.email}
-Status: Active
-
-Login here:
-{system_link}
-
-Thank you!
-                """
-                send_mail(
-                    subject,
-                    message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [recipient],
-                    fail_silently=False,
-                )
-            except Exception as e:
-                print(f"Error sending approval email: {e}")
-
-            return JsonResponse({'status': 'success', 'message': 'User approved and notified via email!'})
-        
+                send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [recipient])
+            except:
+                pass
+                
+            return JsonResponse({'status': 'success', 'message': 'User approved!'})
         elif action == 'reject':
             target_user.delete()
             return JsonResponse({'status': 'success', 'message': 'User registration rejected.'})
-            
     return JsonResponse({'status': 'error', 'message': 'Invalid request.'}, status=400)
 
 @login_required
@@ -296,15 +292,13 @@ def access_requests(request):
 def delete_user(request, user_id):
     if not request.user.is_superuser:
         return JsonResponse({'status': 'error', 'message': 'Unauthorized'}, status=403)
-        
     if request.method == 'POST':
         user_to_delete = get_object_or_404(User, id=user_id)
         if user_to_delete == request.user:
-            return JsonResponse({'status': 'error', 'message': 'You cannot delete your own account!'}, status=400)
+            return JsonResponse({'status': 'error', 'message': 'You cannot delete yourself!'}, status=400)
         user_to_delete.delete()
         return JsonResponse({'status': 'success'})
-        
-    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
+    return JsonResponse({'status': 'error'}, status=400)
 
 @login_required
 def edit_user(request, user_id):
@@ -314,53 +308,36 @@ def edit_user(request, user_id):
     user_profile = get_object_or_404(User, id=user_id)
     
     if request.method == "POST":
+        # Text Fields
         user_profile.full_name = request.POST.get('full_name')
-        user_profile.email = request.POST.get('email') or request.POST.get('deped_email')
+        user_profile.deped_email = request.POST.get('deped_email') # Tiyaking 'deped_email' ang name sa HTML
         user_profile.personal_email = request.POST.get('personal_email')
         user_profile.position = request.POST.get('position')
         user_profile.education_level = request.POST.get('education_level')
         user_profile.employee_id = request.POST.get('employee_id')
         user_profile.contact_no = request.POST.get('contact_no')
         user_profile.year_graduated = request.POST.get('year_graduated')
-
+        
+        # Foreign Key: School
         school_id = request.POST.get('school')
         if school_id:
-            try:
-                school_obj = School.objects.get(id=school_id)
-                user_profile.school = school_obj
-            except (School.DoesNotExist, ValueError):
-                pass
-
+            user_profile.school = School.objects.filter(id=school_id).first()
+            
+        # File Field: Profile Picture
         if 'profile_picture' in request.FILES:
             user_profile.profile_picture = request.FILES['profile_picture']
             
         user_profile.save()
-        messages.success(request, f"Profile of {user_profile.full_name} has been updated!")
-        return redirect('user_management')
+        messages.success(request, f"Profile of {user_profile.full_name} updated successfully!")
+        
+        # Mas mainam i-redirect sa parehong page para makita agad ang update
+        return redirect('edit_user', user_id=user_id)
 
-    all_schools = School.objects.all().order_by('name')
-    context = {
-        'user_profile': user_profile,
-        'schools': all_schools,
-    }
-    return render(request, 'edit_user.html', context)
-
-# --- DASHBOARDS ---
-
-@login_required
-def superadmin_dashboard(request):
-    """Dashboard para sa System Administrator (superuser)."""
-    if not request.user.is_superuser:
-        return redirect('dashboard_selector')
-
-    context = {
-        'total_users': User.objects.count(),
-        'total_schools': School.objects.count(),
-        'total_memos': Document.objects.count(),
-        'recent_users': User.objects.all().order_by('-date_joined')[:5],
-        'title': "System Super Admin"
-    }
-    return render(request, 'superadmin_dashboard.html', context)
+    return render(request, 'edit_user.html', {
+        'user_profile': user_profile, 
+        'schools': School.objects.all().order_by('name')
+    })
+# --- OTHER DASHBOARDS ---
 
 @login_required
 def admin_dashboard(request):
@@ -389,6 +366,8 @@ def employee_profile(request):
         return redirect('employee_profile')
     return render(request, 'employee_profile.html', {'user': user})
 
+# --- DOCUMENT LOGIC ---
+
 @login_required
 def received_documents(request):
     if request.user.is_superuser:
@@ -397,60 +376,99 @@ def received_documents(request):
         memos = Document.objects.filter(school=request.user.school).order_by('-date_uploaded')
     return render(request, 'received_documents.html', {'memos': memos})
 @login_required
-@require_http_methods(["GET", "POST"])
 def upload_document(request):
-    # Kapag ang user ay nag-click ng "Confirm Upload" sa SweetAlert2
-    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        try:
-            title = request.POST.get('title')
-            category = request.POST.get('category')
-            uploaded_file = request.FILES.get('file')
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        category = request.POST.get('category')
+        uploaded_file = request.FILES.get('file')
 
-            if not title or not uploaded_file:
-                return JsonResponse({'status': 'error', 'message': 'Title and File are required.'}, status=400)
+        if not title or not uploaded_file:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'status': 'error', 'message': 'Required fields missing.'}, status=400)
+            messages.error(request, "Title and File are required.")
+        else:
+            try:
+                Document.objects.create(
+                    uploaded_by=request.user,
+                    title=title,
+                    category=category,
+                    file=uploaded_file,
+                    school=request.user.school
+                )
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'status': 'success', 'message': 'Uploaded successfully!'})
+                messages.success(request, "Document uploaded successfully!")
+                return redirect('upload_document')
+            except Exception as e:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+                messages.error(request, f"Error: {str(e)}")
 
-            # I-save sa Database
-            doc = Document.objects.create(
-                uploader=request.user,
-                title=title,
-                category=category,
-                file=uploaded_file,
-                school=request.user.school # Awtomatikong i-assign sa school ng user
-            )
-
-            return JsonResponse({
-                'status': 'success', 
-                'message': 'Document uploaded successfully!',
-                'doc_id': doc.id
-            })
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-
-    # Kapag ni-load lang ang page (GET request)
-    # Dito natin kukunin ang stats para sa dashboard
-    user_docs = Document.objects.filter(uploader=request.user).order_by('-date_uploaded')
+    # 1. Kunin ang mga dokumento ng current user
+    user_docs = Document.objects.filter(uploaded_by=request.user).order_by('-date_uploaded')
     
+    # 2. Kunin ang bilang ng mga users na pending (is_active=False)
+    # Gagamitin ito para sa badge sa iyong sidebar
+    pending_count = User.objects.filter(is_active=False).count()
+
+    # 3. I-pass lahat sa context
     context = {
-        'documents': user_docs,
-        'total_uploads': user_docs.count(),
+        'recent_logs': user_docs,
         'word_count': user_docs.filter(category='word').count(),
         'excel_count': user_docs.filter(category='excel').count(),
-        'ppt_count': user_docs.filter(category='ppt').count(),
         'pdf_count': user_docs.filter(category='pdf').count(),
-        'title': "My Uploaded Assets"
+        'ppt_count': user_docs.filter(category='ppt').count(),
+        'staff_users': User.objects.filter(is_active=True).exclude(id=request.user.id).order_by('full_name'),
+        'unread_received_count': ReceivedDocument.objects.filter(recipient=request.user, is_read=False).count(),
+        'unread_docs': ReceivedDocument.objects.filter(recipient=request.user, is_read=False).order_by('-date_received'),
+        'pending_count': pending_count, # Siniguro kong may comma (,) sa dulo ng line bago ito
     }
     return render(request, 'upload_document.html', context)
+
 @login_required
-@require_http_methods(["POST"])
 def delete_document(request, doc_id):
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    if request.method == 'POST':
         doc = get_object_or_404(Document, id=doc_id)
-        
-        # Security check: Admin lang o ang uploader ang pwedeng mag-delete
-        if doc.uploader == request.user or request.user.is_superuser:
+        if doc.uploaded_by == request.user or request.user.is_superuser:
             doc.delete()
-            return JsonResponse({'status': 'success', 'message': 'File deleted successfully.'})
-        else:
-            return JsonResponse({'status': 'error', 'message': 'Unauthorized action.'}, status=403)
-            
-    return JsonResponse({'status': 'error', 'message': 'Invalid request.'}, status=400)
+            return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error', 'message': 'Unauthorized'}, status=403)
+
+@login_required
+def send_document(request):
+    if request.method == 'POST':
+        document_id = request.POST.get('document_id')
+        # Kinukuha ang listahan ng IDs mula sa checkboxes (recipient_ids[])
+        recipient_ids = request.POST.getlist('recipient_ids[]')
+        
+        if not document_id or not recipient_ids:
+            messages.error(request, "Pumili ng dokumento at mga tatanggap.")
+            return redirect('upload_document')
+
+        document = get_object_or_404(Document, id=document_id)
+        
+        for r_id in recipient_ids:
+            recipient = User.objects.filter(id=r_id).first()
+            if recipient:
+                # Gagamit ng get_or_create para maiwasan ang duplicate sending ng parehong file
+                ReceivedDocument.objects.get_or_create(
+                    document=document,
+                    recipient=recipient,
+                    sender=request.user # Sinave natin ang nag-send
+                )
+        
+        messages.success(request, f"Ang '{document.title}' ay matagumpay na naipadala.")
+        return redirect('upload_document')
+    
+    return redirect('upload_document')
+@login_required
+def internal_chat(request):
+    # Dito natin kukunin ang lahat ng users para sa sidebar ng messenger
+    # Maliban sa sarili mo (request.user)
+    users = User.objects.exclude(id=request.user.id)
+    
+    context = {
+        'users': users,
+        'segment': 'messenger', # Para sa active state ng sidebar
+    }
+    return render(request, 'internal_chat.html', context)

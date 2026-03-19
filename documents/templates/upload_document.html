@@ -1,52 +1,377 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}My Uploads | ERDMS{% endblock title %}
+{% block title %}Upload & Manage Documents | ERDM{% endblock title %}
 
 {% block content %}
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
-    :root { --primary-gradient: linear-gradient(135deg, #4361ee, #4cc9f0); }
-    .dashboard-wrapper { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafd; min-height: 100vh; padding: 1.5rem; }
-    .btn-upload-main { background: var(--primary-gradient); color: white; border: none; padding: 0.6rem 1.5rem; border-radius: 10px; font-weight: 600; cursor: pointer; }
+    :root {
+        --primary-color: #4361ee;
+        --font-main: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .dashboard-wrapper {
+        font-family: var(--font-main);
+        background: #f8fafd;
+        min-height: 100vh;
+        padding: 1rem;
+        margin-top: -20px;
+    }
+
+    .header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Stat Cards */
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 1rem;
+    }
+
+    @media (max-width: 1200px) { .stat-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 768px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .stat-card {
+        padding: 1.2rem;
+        border-radius: 1rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        min-height: 100px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        border: none;
+        transition: transform 0.3s ease;
+    }
+    .stat-card:hover { transform: translateY(-5px); }
+
+    .stat-card.blue { background: linear-gradient(135deg, #4361ee, #4cc9f0); }
+    .stat-card.green { background: linear-gradient(135deg, #2ec4b6, #80ed99); }
+    .stat-card.purple { background: linear-gradient(135deg, #7209b7, #b5179e); }
+    .stat-card.red { background: linear-gradient(135deg, #e63946, #ff4d6d); }
+    .stat-card.orange { background: linear-gradient(135deg, #f77f00, #fcbf49); }
+
+    .stat-icon-bg {
+        font-size: 2.2rem;
+        opacity: 0.25;
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+    }
+
+    .counter-value { font-size: 1.5rem; font-weight: 800; margin-bottom: 0; line-height: 1; }
+    .stat-label { font-size: 0.75rem; font-weight: 500; opacity: 0.9; margin-top: 4px; }
+
+    /* Action Buttons */
+    .btn-action {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.3s;
+        font-size: 0.85rem;
+        cursor: pointer;
+    }
+    .btn-send { background: #eef2ff; color: #4361ee; }
+    .btn-send:hover { background: #4361ee !important; color: white !important; }
+    
+    .btn-download { background: #ecfdf5; color: #10b981; }
+    .btn-download:hover { background: #10b981 !important; color: white !important; }
+    
+    .btn-delete { background: #fef2f2; color: #ef4444; }
+    .btn-delete:hover { background: #ef4444 !important; color: white !important; }
+
+    /* Drop Zone */
+    .drop-zone {
+        border: 2px dashed #cbd5e1;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        background: #fdfdfd;
+        transition: 0.3s;
+    }
+    .drop-zone:hover { border-color: var(--primary-color); background: #f0f7ff; }
+
+    .form-control-modern {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        padding: 0.6rem 1rem !important;
+        border-radius: 10px !important;
+        font-size: 0.9rem !important;
+        height: 45px !important;
+    }
+
+    .label-custom {
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .x-small { font-size: 0.7rem; }
+    .view-all-link { font-size: 0.75rem; text-decoration: none; color: var(--primary-color); font-weight: 700; }
+    
+    .table thead th {
+        background: #f1f5f9;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        border: none;
+    }
+
+    .user-selection-list {
+        max-height: 250px;
+        overflow-y: auto;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+    }
+    .user-item { transition: 0.2s; cursor: pointer; }
+    .user-item:hover { background-color: #f8f9fa; }
+    
+    .avatar-circle {
+        width: 35px; height: 35px; border-radius: 50%;
+        background: #eef2ff; color: #4361ee;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 0.8rem;
+    }
 </style>
 
 <div class="dashboard-wrapper">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="header-container">
         <div>
-            <h3 class="fw-bold text-dark mb-1">My Uploaded Assets</h3>
-            <p class="text-muted small">View and manage all files you have contributed.</p>
+            <h4 class="fw-bold text-dark mb-1">Document Management</h4>
+            <p class="text-muted small mb-0">Upload, track, and send digital assets.</p>
         </div>
-        <div class="d-flex gap-2">
-            <div id="liveClock" class="bg-white px-3 py-2 rounded-pill shadow-sm border small fw-bold text-primary"></div>
-            <button type="button" class="btn btn-upload-main" id="btnShowUpload">
-                <i class="fas fa-plus-circle me-2"></i>Upload New Asset
-            </button>
+        <div id="liveClock" class="bg-white px-3 py-2 rounded-pill shadow-sm border small fw-bold text-primary">
+            <i class="far fa-clock mr-1"></i> Loading...
         </div>
     </div>
 
+    <div class="stat-grid mb-4">
+        <div class="stat-card blue">
+            <h3 class="counter-value">{{ word_count|default:"0" }}</h3>
+            <p class="stat-label mb-0">Word Docs</p>
+            <i class="fas fa-file-word stat-icon-bg"></i>
+        </div>
+        <div class="stat-card green">
+            <h3 class="counter-value">{{ excel_count|default:"0" }}</h3>
+            <p class="stat-label mb-0">Excel Sheets</p>
+            <i class="fas fa-file-excel stat-icon-bg"></i>
+        </div>
+        <div class="stat-card purple">
+            <h3 class="counter-value">{{ ppt_count|default:"0" }}</h3>
+            <p class="stat-label mb-0">PowerPoint</p>
+            <i class="fas fa-file-powerpoint stat-icon-bg"></i>
+        </div>
+        <div class="stat-card red">
+            <h3 class="counter-value">{{ pdf_count|default:"0" }}</h3>
+            <p class="stat-label mb-0">PDF Files</p>
+            <i class="fas fa-file-pdf stat-icon-bg"></i>
+        </div>
+        <div class="stat-card orange">
+            <h3 class="counter-value">{{ unread_received_count|default:"0" }}</h3>
+            <p class="stat-label mb-0">Unread Received</p>
+            <i class="fas fa-envelope stat-icon-bg"></i>
+        </div>
     </div>
 
-<div id="uploadFormContainer" style="display: none;">
-    <div class="text-start p-2">
-        <div class="mb-3">
-            <label class="small fw-bold text-muted text-uppercase mb-1 d-block">Document Title</label>
-            <input type="text" id="swalTitle" class="form-control bg-light p-3" placeholder="Enter title...">
+    <div class="row">
+        <div class="col-lg-4 col-xl-3 mb-4">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                    <h6 class="fw-bold text-dark mb-0">Upload New File</h6>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" enctype="multipart/form-data" id="uploadForm" action="{% url 'upload_document' %}">
+                        {% csrf_token %}
+                        <div class="drop-zone" onclick="document.getElementById('file-input').click()">
+                            <input type="file" name="file" id="file-input" hidden required>
+                            <div id="preview-text">
+                                <i class="fas fa-cloud-arrow-up text-primary mb-2 fa-2x"></i>
+                                <h6 class="fw-bold mb-1 x-small text-dark">Select File</h6>
+                                <p class="text-muted mb-0" style="font-size: 0.6rem;">Max size: 25MB</p>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label class="label-custom">Title / Name</label>
+                            <input type="text" name="title" class="form-control form-control-modern" placeholder="Enter file name..." required>
+                        </div>
+                        <div class="mt-3">
+                            <label class="label-custom">Category</label>
+                            <select name="category" class="form-control form-control-modern" required>
+                                <option value="word">Word Document</option>
+                                <option value="excel">Excel Spreadsheet</option>
+                                <option value="ppt">PowerPoint</option>
+                                <option value="pdf">PDF File</option>
+                            </select>
+                        </div>
+                        <button type="submit" id="btnUpload" class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-sm mt-4">
+                            <i class="fas fa-upload mr-2"></i> Confirm Upload
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
-        <div class="mb-3">
-            <label class="small fw-bold text-muted text-uppercase mb-1 d-block">Category</label>
-            <select id="swalCategory" class="form-select bg-light p-3">
-                <option value="word">Word Document</option>
-                <option value="excel">Excel Spreadsheet</option>
-                <option value="ppt">PowerPoint Presentation</option>
-                <option value="pdf">PDF File</option>
-            </select>
+
+        <div class="col-lg-8 col-xl-6 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-2 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-dark mb-0">Recent Uploads</h6>
+                    <a href="{% url 'upload_document' %}" class="view-all-link">Manage All</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th class="pl-4 x-small fw-bold text-muted">File Details</th>
+                                <th class="x-small fw-bold text-muted text-center">Type</th>
+                                <th class="text-center x-small fw-bold text-muted" style="width: 130px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for doc in recent_logs|slice:":7" %}
+                            <tr>
+                                <td class="pl-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas {% if doc.category == 'word' %}fa-file-word text-primary{% elif doc.category == 'excel' %}fa-file-excel text-success{% elif doc.category == 'ppt' %}fa-file-powerpoint text-warning{% else %}fa-file-pdf text-danger{% endif %} fs-5 mr-3"></i>
+                                        <div class="overflow-hidden">
+                                            <div class="fw-bold text-dark text-truncate small" style="max-width: 180px;">{{ doc.title }}</div>
+                                            <div class="text-muted x-small">{{ doc.date_uploaded|date:"M d, Y h:i A" }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge badge-light border x-small">{{ doc.category|upper }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center">
+                                        <button type="button" class="btn-action btn-send mr-1" onclick="openSendModal('{{ doc.id }}', '{{ doc.title|escapejs }}', '{{ doc.category }}')" title="Send to Staff">
+                                            <i class="fas fa-paper-plane"></i>
+                                        </button>
+                                        <a href="{{ doc.file.url }}" class="btn-action btn-download mr-1" download title="Download">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                        <button type="button" class="btn-action btn-delete" onclick="handleDelete('{{ doc.id }}', '{{ doc.title|escapejs }}')" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center py-5 text-muted small">No files uploaded yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div class="mb-2">
-            <label class="small fw-bold text-muted text-uppercase mb-1 d-block">File Attachment</label>
-            <input type="file" id="swalFile" class="form-control bg-light p-2">
+
+        <div class="col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-2 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-dark mb-0">Received Items</h6>
+                    <span class="badge badge-primary badge-pill x-small">New</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for item in unread_docs|slice:":5" %}
+                        <div class="list-group-item px-4 py-3 border-0 border-bottom">
+                            <div class="d-flex align-items-center mb-1">
+                                <i class="fas fa-file-import text-primary x-small mr-2"></i>
+                                <div class="fw-bold text-dark text-truncate small">{{ item.document.title }}</div>
+                            </div>
+                            <div class="text-muted x-small">From: {{ item.sender.username }}</div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-5 text-muted x-small">
+                            <i class="fas fa-inbox d-block mb-2 fs-4 opacity-25"></i> Inbox is empty.
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="p-3 text-center">
+                        <a href="{% url 'received_documents' %}" class="view-all-link">View All Received</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="sendModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 450px;">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0"><i class="fas fa-paper-plane text-primary mr-2"></i>Forward Document</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="sendDocumentForm" method="POST" action="{% url 'send_document' %}">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <input type="hidden" name="document_id" id="modal_doc_id">
+                    
+                    <div class="p-3 rounded-4 bg-light border text-center mb-4">
+                        <i id="modal_icon" class="fas fa-file-alt mb-2 text-primary fs-3"></i>
+                        <div id="modal_doc_display_title" class="fw-bold text-dark small text-truncate">File Name</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="input-group input-group-sm mb-2">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
+                            </div>
+                            <input type="text" id="userSearch" class="form-control border-left-0 pl-0" placeholder="Search staff...">
+                        </div>
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="selectAllUsers">
+                            <label class="custom-control-label small fw-bold text-primary" for="selectAllUsers" style="cursor: pointer;">
+                                Select All Staff
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="user-selection-list">
+                        {% for staff in staff_users %}
+                        <div class="user-item p-2 d-flex align-items-center border-bottom user-row" data-name="{{ staff.username|lower }}">
+                            <div class="custom-control custom-checkbox flex-grow-1 d-flex align-items-center">
+                                <input type="checkbox" class="custom-control-input recipient-checkbox" name="recipient_ids[]" value="{{ staff.id }}" id="user_{{ staff.id }}">
+                                <label class="custom-control-label d-flex align-items-center w-100" for="user_{{ staff.id }}" style="cursor: pointer; padding-left: 25px;">
+                                    <div class="avatar-circle mr-3">
+                                        {{ staff.username|slice:":1"|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold small text-dark mb-0">{{ staff.username }}</div>
+                                        <div class="text-muted" style="font-size: 0.65rem;">{{ staff.role|default:"Staff Member" }}</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="p-4 text-center text-muted small">No recipients available.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-dismiss="modal">Cancel</button>
+                    <button type="submit" id="btnSubmitSend" class="btn btn-primary rounded-pill px-4 fw-bold" disabled>
+                        Send Now (<span id="selectedCount">0</span>)
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -55,55 +380,97 @@
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Clock Logic
-        setInterval(() => {
-            const clock = document.getElementById('liveClock');
-            if(clock) clock.innerText = new Date().toLocaleString();
-        }, 1000);
+$(document).ready(function() {
+    // Live Clock Function
+    function updateClock() {
+        const now = new Date();
+        const clockStr = now.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        $('#liveClock').html('<i class="far fa-calendar-alt mr-2"></i>' + clockStr);
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
 
-        // Upload Trigger
-        const btn = document.getElementById('btnShowUpload');
-        if (btn) {
-            btn.addEventListener('click', function() {
-                Swal.fire({
-                    title: 'Upload New Asset',
-                    html: document.getElementById('uploadFormContainer').innerHTML,
-                    showCancelButton: true,
-                    confirmButtonText: 'Confirm Upload',
-                    confirmButtonColor: '#4361ee',
-                    preConfirm: () => {
-                        const title = Swal.getPopup().querySelector('#swalTitle').value;
-                        const file = Swal.getPopup().querySelector('#swalFile').files[0];
-                        if (!title || !file) {
-                            Swal.showValidationMessage(`Please enter a title and select a file`);
-                        }
-                        return { title, category: Swal.getPopup().querySelector('#swalCategory').value, file };
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        const formData = new FormData();
-                        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-                        formData.append('title', result.value.title);
-                        formData.append('category', result.value.category);
-                        formData.append('file', result.value.file);
-
-                        Swal.fire({ title: 'Uploading...', didOpen: () => Swal.showLoading() });
-
-                        fetch("{% url 'upload_document' %}", {
-                            method: 'POST',
-                            body: formData,
-                            headers: {'X-Requested-With': 'XMLHttpRequest'}
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if(data.status === 'success') location.reload();
-                            else Swal.fire('Error', data.message, 'error');
-                        });
-                    }
-                });
-            });
+    // File Preview
+    $('#file-input').on('change', function () {
+        const fileName = $(this).val().split('\\').pop();
+        if (fileName) {
+            $('#preview-text').html(`<i class="fas fa-check-circle text-success mb-2 fa-2x"></i><h6 class="fw-bold mb-1 x-small">${fileName}</h6>`);
         }
     });
+
+    // Form Loading State
+    $('#uploadForm').on('submit', function() {
+        $('#btnUpload').prop('disabled', true).html('<span class="spinner-border spinner-border-sm mr-2"></span> Uploading...');
+    });
+
+    // Recipient Search
+    $('#userSearch').on('keyup', function() {
+        const value = $(this).val().toLowerCase();
+        $('.user-row').filter(function() {
+            $(this).toggle($(this).data('name').indexOf(value) > -1);
+        });
+    });
+
+    // Select All Toggle
+    $('#selectAllUsers').on('change', function() {
+        const isChecked = $(this).prop('checked');
+        $('.recipient-checkbox:visible').prop('checked', isChecked);
+        updateSelectedCount();
+    });
+
+    $(document).on('change', '.recipient-checkbox', function() {
+        updateSelectedCount();
+        if (!$(this).prop('checked')) {
+            $('#selectAllUsers').prop('checked', false);
+        }
+    });
+
+    function updateSelectedCount() {
+        const count = $('.recipient-checkbox:checked').length;
+        $('#selectedCount').text(count);
+        $('#btnSubmitSend').prop('disabled', count === 0);
+    }
+});
+
+function openSendModal(docId, title, category) {
+    $('#modal_doc_id').val(docId);
+    $('#modal_doc_display_title').text(title);
+    
+    const icon = $('#modal_icon');
+    icon.removeClass().addClass('fas fs-3 mb-2');
+    if (category === 'pdf') icon.addClass('fa-file-pdf text-danger');
+    else if (category === 'word') icon.addClass('fa-file-word text-primary');
+    else if (category === 'excel') icon.addClass('fa-file-excel text-success');
+    else if (category === 'ppt') icon.addClass('fa-file-powerpoint text-warning');
+    else icon.addClass('fa-file-alt text-secondary');
+
+    $('#sendModal').modal('show');
+}
+
+function handleDelete(docId, title) {
+    Swal.fire({
+        title: 'Delete this file?',
+        text: `Are you sure you want to remove "${title}"? This cannot be undone.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Yes, Delete it'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            // Inayos ang delete path para mag-match sa url 'delete_document'
+            form.action = `/documents/delete/${docId}/`;
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = 'csrfmiddlewaretoken';
+            csrf.value = '{{ csrf_token }}';
+            form.appendChild(csrf);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
 </script>
 {% endblock %}

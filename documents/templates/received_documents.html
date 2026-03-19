@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Received Memos | DepEd ERDM{% endblock %}
+
+{% block content %}
+<div class="container-fluid animate__animated animate__fadeIn">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="font-weight-bold text-dark mb-1">Received Memos</h3>
+            <p class="text-muted small">
+                {% if request.user.is_superuser %}
+                    Monitoring all documents uploaded across the system.
+                {% else %}
+                    View documents uploaded for <strong>{{ request.user.school }}</strong>.
+                {% endif %}
+            </p>
+        </div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb bg-transparent p-0 small">
+                <li class="breadcrumb-item"><a href="{% url 'super_admin_dashboard' %}">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Received Memos</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-lg" style="border-left: 4px solid #1a53ff !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted small text-uppercase font-weight-bold mb-1">Total Memos</p>
+                            <h4 class="font-weight-bold mb-0">{{ memos.count }}</h4>
+                        </div>
+                        <div class="bg-light p-3 rounded-circle">
+                            <i class="fas fa-file-invoice text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h6 class="m-0 font-weight-bold text-dark"><i class="fas fa-list-alt mr-2 text-primary"></i>Document List</h6>
+                </div>
+                <div class="col text-right">
+                    <div class="input-group input-group-sm" style="width: 250px; display: inline-flex;">
+                        <input type="text" id="memoSearch" class="form-control" placeholder="Search title or sender...">
+                        <div class="input-group-append">
+                            <span class="input-group-text bg-white border-left-0"><i class="fas fa-search text-muted"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="memoTable">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="border-0 px-4 py-3 text-muted small text-uppercase">File Info</th>
+                            <th class="border-0 py-3 text-muted small text-uppercase">Uploaded By</th>
+                            <th class="border-0 py-3 text-muted small text-uppercase">School/Office</th>
+                            <th class="border-0 py-3 text-muted small text-uppercase">Date</th>
+                            <th class="border-0 py-3 text-muted small text-uppercase text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for memo in memos %}
+                        <tr>
+                            <td class="px-4 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="mr-3">
+                                        {% if ".pdf" in memo.file.name|lower %}
+                                            <i class="fas fa-file-pdf fa-2x text-danger"></i>
+                                        {% elif ".doc" in memo.file.name|lower %}
+                                            <i class="fas fa-file-word fa-2x text-primary"></i>
+                                        {% elif ".xls" in memo.file.name|lower %}
+                                            <i class="fas fa-file-excel fa-2x text-success"></i>
+                                        {% else %}
+                                            <i class="fas fa-file-alt fa-2x text-secondary"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <div class="font-weight-bold text-dark mb-0">{{ memo.title }}</div>
+                                        <small class="text-muted">{{ memo.file.name|cut:'documents/' }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-3">
+                                <span class="text-dark small font-weight-bold">{{ memo.uploaded_by.get_full_name|default:memo.uploaded_by.username }}</span>
+                            </td>
+                            <td class="py-3">
+                                <span class="badge badge-info-light px-2 py-1 small" style="background: #eef2ff; color: #1a53ff;">
+                                    {{ memo.school|default:"N/A" }}
+                                </span>
+                            </td>
+                            <td class="py-3">
+                                <span class="small text-dark">{{ memo.date_uploaded|date:"M. d, Y" }}</span><br>
+                                <small class="text-muted">{{ memo.date_uploaded|time:"h:i A" }}</small>
+                            </td>
+                            <td class="py-3 text-center">
+                                <div class="btn-group">
+                                    <a href="{{ memo.file.url }}" class="btn btn-sm btn-outline-primary" title="Download" download>
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                    <a href="{{ memo.file.url }}" target="_blank" class="btn btn-sm btn-outline-info" title="Preview">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <div class="py-4">
+                                    <img src="{% static 'img/no-data.png' %}" alt="No data" style="width: 80px; opacity: 0.3;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/7486/7486744.png'">
+                                    <h6 class="text-muted mt-3">No memos found.</h6>
+                                    <p class="text-muted small">Documents for your school will appear here once uploaded.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('memoSearch').addEventListener('keyup', function() {
+        let value = this.value.toLowerCase();
+        let rows = document.querySelectorAll("#memoTable tbody tr");
+        
+        rows.forEach(row => {
+            let text = row.textContent.toLowerCase();
+            row.style.display = text.includes(value) ? "" : "none";
+        });
+    });
+</script>
+
+<style>
+    /* Custom hover effect for buttons */
+    .btn-group .btn:hover {
+        transform: translateY(-2px);
+        transition: all 0.2s;
+        z-index: 5;
+    }
+    .table td { vertical-align: middle; }
+</style>
+{% endblock %}

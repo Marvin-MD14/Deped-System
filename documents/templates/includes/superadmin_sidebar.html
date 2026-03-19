@@ -1,64 +1,3 @@
-<<<<<<< HEAD
-<li class="nav-heading"><span>Main Menu</span></li>
-
-<li class="{% if request.resolver_match.url_name == 'super_admin_dashboard' %}active{% endif %}">
-    <a href="{% url 'super_admin_dashboard' %}">
-        <em class="icon-speedometer"></em>
-        <span>Dashboard</span>
-    </a>
-</li>
-
-<li class="{% if 'user' in request.path or 'access' in request.path %}active{% endif %}">
-    <a href="#user-mgmt" data-toggle="collapse" class="d-flex align-items-center justify-content-between">
-        <div>
-            <em class="icon-people"></em>
-            <span>User Management</span>
-            {% if pending_count > 0 %}
-                <span class="badge badge-danger ml-2 animate__animated animate__pulse animate__infinite" style="border-radius: 10px; font-size: 10px; padding: 2px 6px;">{{ pending_count }}</span>
-            {% endif %}
-        </div>
-        <em class="fas fa-chevron-right style-arrow"></em>
-    </a>
-    <ul class="sidebar-nav sidebar-subnav collapse {% if 'user' in request.path or 'access' in request.path %}show{% endif %}" id="user-mgmt">
-        <li class="sidebar-subnav-header">User Management</li>
-        
-        <li class="{% if request.resolver_match.url_name == 'pending_approvals' %}active{% endif %}">
-            <a href="{% url 'pending_approvals' %}" class="d-flex justify-content-between align-items-center">
-                <span><i class="fas fa-user-clock mr-2 text-warning"></i><span>Pending Approvals</span></span>
-                {% if pending_count > 0 %}
-                    <span class="badge badge-pill badge-danger">{{ pending_count }}</span>
-                {% endif %}
-            </a>
-        </li>
-
-        <li class="{% if request.resolver_match.url_name == 'add_user' %}active{% endif %}">
-            <a href="{% url 'add_user' %}"><i class="fas fa-user-plus mr-2"></i><span>Add User</span></a>
-        </li>
-        
-        <li class="{% if request.resolver_match.url_name == 'user_management' %}active{% endif %}">
-            <a href="{% url 'user_management' %}"><i class="fas fa-list mr-2"></i><span>User List</span></a>
-        </li>
-        
-        <li class="{% if request.resolver_match.url_name == 'access_requests' %}active{% endif %}">
-            <a href="{% url 'access_requests' %}"><i class="fas fa-key mr-2"></i><span>Access Requests</span></a>
-        </li>
-    </ul>
-</li>
-
-<li>
-    <a href="#doc-mgmt" data-toggle="collapse" class="d-flex align-items-center justify-content-between">
-        <div>
-            <em class="icon-folder"></em>
-            <span>Documents</span>
-        </div>
-        <em class="fas fa-chevron-right style-arrow"></em>
-    </a>
-    <ul class="sidebar-nav sidebar-subnav collapse" id="doc-mgmt">
-        <li class="sidebar-subnav-header">Document Records</li>
-        <li><a href="{% url 'received_documents' %}"><i class="fas fa-file-alt mr-2"></i><span>Received Memos</span></a></li>
-    </ul>
-</li>
-=======
 {% load static %}
 <div class="aside-inner">
    <nav class="sidebar">
@@ -66,10 +5,12 @@
          <li class="has-user-block" style="border-bottom: 1px solid #f2f2f2; padding: 20px 0;">
             <div class="text-center">
                <img class="img-thumbnail rounded-circle" 
-                    src="{% if user.userprofile.profile_picture %}{{ user.userprofile.profile_picture.url }}{% else %}{% static 'assets/img/user/default.png' %}{% endif %}" 
-                    style="width: 70px; height: 70px;">
+                    src="{% if user.userprofile.profile_picture %}{{ user.userprofile.profile_picture.url }}{% else %}{% static 'img/default-user.png' %}{% endif %}" 
+                    style="width: 70px; height: 70px; object-fit: cover;">
                <div class="mt-2">
-                  <div class="font-weight-bold" style="color: #333;">{{ user.username }}</div>
+                  <div class="font-weight-bold" style="color: #333;">
+                     {{ user.get_full_name|default:user.username }}
+                  </div>
                   <small class="text-danger font-weight-bold">SUPERADMIN</small>
                </div>
             </div>
@@ -77,46 +18,103 @@
 
          <li class="nav-heading"><span class="text-muted">Main Navigation</span></li>
          
-         <li class="{% if request.resolver_match.url_name == 'superadmin_dashboard' %}active{% endif %}">
-            <a href="{% url 'superadmin_dashboard' %}">
-               <em class="icon-speedometer"></em>
+         <li class="{% if request.resolver_match.url_name == 'super_admin_dashboard' %}active{% endif %}">
+            <a href="{% url 'super_admin_dashboard' %}">
+               <em class="fas fa-tachometer-alt mr-2 text-primary"></em>
                <span>Admin Dashboard</span>
             </a>
          </li>
 
-         <li class="nav-heading"><span class="text-muted">System Management</span></li>
-         
-         <li>
-            <a href="#master-files" data-toggle="collapse">
-               <em class="icon-folder"></em>
-               <span>Master Files</span>
+         <li class="{% if request.resolver_match.url_name == 'internal_chat' %}active{% endif %}">
+            <a href="{% url 'internal_chat' %}" class="d-flex align-items-center justify-content-between">
+               <div>
+                  <i class="fab fa-facebook-messenger mr-2" style="background: -webkit-linear-gradient(#006AFF, #00B2FF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.1em;"></i>
+                  <span>Messenger</span>
+               </div>
+               <span class="badge badge-primary badge-pill animate__animated animate__headShake animate__infinite" 
+                     style="font-size: 9px; background-color: #0084FF; padding: 3px 6px;">LIVE</span>
             </a>
-            <ul class="sidebar-nav sidebar-subnav collapse" id="master-files">
-               <li><a href="{% url 'all_documents' %}"><span>All Uploads</span></a></li>
-               <li><a href="#"><span>Archival</span></a></li>
+         </li>
+
+         <li class="nav-heading"><span class="text-muted">User Management</span></li>
+
+         <li class="{% if 'super-admin/' in request.path %}active{% endif %}">
+            <a href="#user-mgmt" data-toggle="collapse" class="d-flex align-items-center justify-content-between {% if 'super-admin/' not in request.path %}collapsed{% endif %}">
+                <div>
+                    <em class="fas fa-users-cog mr-2 text-info"></em>
+                    <span>Accounts Control</span>
+                    {% if pending_count > 0 %}
+                        <span class="badge badge-danger ml-2 animate__animated animate__pulse animate__infinite" 
+                              style="border-radius: 10px; font-size: 10px; padding: 2px 6px;">
+                              {{ pending_count }}
+                        </span>
+                    {% endif %}
+                </div>
+                <em class="fas fa-chevron-right style-arrow" style="font-size: 0.8rem;"></em>
+            </a>
+            <ul class="sidebar-nav sidebar-subnav collapse {% if 'super-admin/' in request.path %}show{% endif %}" id="user-mgmt">
+                <li class="{% if request.resolver_match.url_name == 'access_requests' %}active{% endif %}">
+                    <a href="{% url 'access_requests' %}">
+                        <i class="fas fa-user-clock mr-2 text-warning"></i>
+                        <span>Pending Approvals</span>
+                    </a>
+                </li>
+                <li class="{% if request.resolver_match.url_name == 'add_user' %}active{% endif %}">
+                    <a href="{% url 'add_user' %}">
+                        <i class="fas fa-user-plus mr-2 text-success"></i>
+                        <span>Add New User</span>
+                    </a>
+                </li>
+                <li class="{% if request.resolver_match.url_name == 'user_management' %}active{% endif %}">
+                    <a href="{% url 'user_management' %}">
+                        <i class="fas fa-list mr-2 text-info"></i>
+                        <span>Master List</span>
+                    </a>
+                </li>
             </ul>
          </li>
 
-         <li class="{% if 'access-requests' in request.path %}active{% endif %}">
-            <a href="{% url 'access_requests' %}">
-               <em class="icon-user-follow"></em>
-               <span>Reg. Requests</span>
+         <li class="nav-heading"><span class="text-muted">Document System</span></li>
+
+         <li class="{% if 'memos' in request.path or 'documents' in request.path %}active{% endif %}">
+            <a href="#doc-mgmt" data-toggle="collapse" class="d-flex align-items-center justify-content-between {% if 'documents' not in request.path %}collapsed{% endif %}">
+                <div>
+                    <em class="fas fa-folder-open mr-2 text-warning"></em>
+                    <span>File Management</span>
+                </div>
+                <em class="fas fa-chevron-right style-arrow" style="font-size: 0.8rem;"></em>
+            </a>
+            <ul class="sidebar-nav sidebar-subnav collapse {% if 'memos' in request.path or 'documents' in request.path %}show{% endif %}" id="doc-mgmt">
+                <li class="{% if request.resolver_match.url_name == 'upload_document' %}active{% endif %}">
+                    <a href="{% url 'upload_document' %}">
+                        <i class="fas fa-cloud-upload-alt mr-2 text-primary"></i>
+                        <span>Upload & Manage</span>
+                    </a>
+                </li>
+                <li class="{% if request.resolver_match.url_name == 'received_documents' %}active{% endif %}">
+                    <a href="{% url 'received_documents' %}">
+                        <i class="fas fa-file-download mr-2 text-success"></i>
+                        <span>Received Memos</span>
+                    </a>
+                </li>
+            </ul>
+         </li>
+
+         <li class="nav-heading"><span class="text-muted">System</span></li>
+         
+         <li class="{% if request.resolver_match.url_name == 'employee_profile' %}active{% endif %}">
+            <a href="{% url 'employee_profile' %}">
+               <em class="fas fa-user-circle mr-2 text-primary"></em>
+               <span>My Profile</span>
             </a>
          </li>
 
          <li>
-            <a href="#"><em class="icon-people"></em><span>User Accounts</span></a>
-         </li>
-
-         <li class="nav-heading"><span class="text-muted">Settings</span></li>
-         
-         <li>
             <a href="{% url 'logout' %}" class="text-danger">
-               <em class="icon-logout"></em>
+               <em class="fas fa-power-off mr-2"></em>
                <span>Sign Out</span>
             </a>
          </li>
       </ul>
    </nav>
 </div>
->>>>>>> 2a655c12c6c8b21f5a50521e333da5482ea0df0f
